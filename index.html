@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TrustBridge | تراست بريدج</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <!-- وضع تجريبي تلقائي بدون Firebase -->
+  <script>
+    window.FB = null;
+    window.FB_READY = false;
+  </script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{background:#0A0F1E;color:#E8F0FE;}
+    input,textarea,button,select{outline:none;}
+    ::-webkit-scrollbar{width:6px;}
+    ::-webkit-scrollbar-track{background:#111827;}
+    ::-webkit-scrollbar-thumb{background:#1E2D45;border-radius:3px;}
+    .ar{font-family:'Cairo',sans-serif;direction:rtl;}
+    .en{font-family:'Inter',sans-serif;direction:ltr;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spin{animation:spin 1s linear infinite;display:inline-block;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .fade{animation:fadeIn .3s ease}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+    .pulse{animation:pulse 2s infinite}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback,useMemo}=React;
+
+/* ════ COLORS ════ */
+const C={bg:"#0A0F1E",surface:"#111827",card:"#151E2E",border:"#1E2D45",accent:"#00D4AA",accentDim:"#00D4AA22",gold:"#F5A623",text:"#E8F0FE",muted:"#6B7FA3",danger:"#FF4D6D",purple:"#8B5CF6"};
+
+/* ════ TRANSLATIONS ════ */
+const T={
+  ar:{dir:"rtl",font:"Cairo,sans-serif",appName:"تراست بريدج",appSub:"منصة الضمان الآمن",login:"تسجيل الدخول",register:"إنشاء حساب",email:"البريد الإلكتروني",password:"كلمة المرور",name:"الاسم الكامل",phone:"رقم الهاتف",country:"البلد",language:"اللغة",role:"أنا...",buyer:"مشتري",seller:"بائع",both:"كلاهما",loginBtn:"دخول 🔒",registerBtn:"إنشاء الحساب ✨",verifyEmail:"تأكيد البريد الإلكتروني",verifyDesc:"أرسلنا كود مكون من 6 أرقام إلى",verifyCode:"كود التحقق",enterCode:"أدخل الكود",verify:"تحقق ✓",resend:"إعادة الإرسال",verified:"تم التحقق!",codeDemo:"📧 كود التجربة:",settingsTitle:"الإعدادات",langCountry:"اللغة والبلد",selectLang:"اللغة",selectCountry:"البلد",save:"حفظ",cancel:"إلغاء",newDeal:"🔒 صفقة",newListing:"🏪 سلعة",myDeals:"🔒 صفقاتي",market:"🏪 السوق",editProfile:"✏️ تعديل البروفايل",logout:"تسجيل الخروج 🚪",profileTitle:"البروفايل",infoTab:"المعلومات 👤",securityTab:"الأمان 🔒",uploadPhoto:"انقر لرفع صورة البروفايل",photoHint:"JPG, PNG — حجم أقصى 2MB",photoSelected:"تم اختيار الصورة ✓",clickChange:"انقر لتغييرها",bioLabel:"النبذة الشخصية",bioPlaceholder:"أخبر الآخرين عنك...",newPass:"كلمة المرور الجديدة",passPlaceholder:"اتركها فارغة إذا لم تريد التغيير",emailNote:"لا يمكن تغيير البريد الإلكتروني",saveChanges:"💾 حفظ التغييرات",saved:"✅ تم الحفظ!",publishListing:"نشر سلعة في السوق",publishSub:"أضف صورك الحقيقية",photos:"صور السلعة",dragPhotos:"اسحب الصور هنا أو انقر",dragHint:"حتى 6 صور · JPG, PNG · 3MB",title2:"عنوان السلعة",price:"السعر ($)",category:"الفئة",condition:"الحالة",desc:"الوصف",publish:"🚀 نشر السلعة",directDeal:"صفقة ضمان مباشرة",directSub:"للطرفين المتفقين مسبقاً",productName:"اسم المنتج",amount:"المبلغ ($)",buyerEmail:"بريد المشتري",sellerEmail:"بريد البائع",next:"التالي ←",back:"رجوع",create:"🔒 إنشاء",noDeals:"لا توجد صفقات. أنشئ صفقة أو تصفّح السوق!",noListings:"لا توجد سلع في هذه الفئة",sendMsg:"📨 إرسال الرسالة",msgSent:"تم إرسال رسالتك!",msgSentSub:"سيتواصل البائع معك لإتمام الصفقة بأمان.",contactSeller:"💬 تواصل مع البائع",msgPlaceholder:"أخبر البائع باهتمامك...",confirmDeal:"✅ تأكيد الصفقة",requests:"طلبات التواصل",noRequests:"لا توجد طلبات بعد 📭",dealNum:"رقم الصفقة",product:"المنتج",amount2:"المبلغ",buyerN:"المشتري",sellerN:"البائع",date:"التاريخ",fees:"الرسوم",adminControl:"👑 تحكم الأدمن",deleteBtn:"🗑 حذف",fromMarket:"من السوق 🏪",cats:["الكل","إلكترونيات","ملابس","رياضة","أثاث","كتب","موسيقى","مركبات","أخرى"],tabs:[["all","الكل"],["pending","انتظار"],["funded","ممول"],["shipped","مشحون"],["complete","مكتمل"],["disputed","نزاع"]],statuses:{pending:"بانتظار الدفع",funded:"الأموال محجوزة",shipped:"تم الشحن",verification:"قيد التحقق",complete:"اكتملت",disputed:"نزاع"},steps:["إنشاء","الدفع","الشحن","التحقق","اكتمل"],actions:{pending:[{label:"💳 تمويل الضمان",next:"funded",allow:["buyer","admin"]}],funded:[{label:"📦 تم الشحن",next:"shipped",allow:["seller","admin"]},{label:"⚠ رفع نزاع",next:"disputed",allow:["buyer","admin"]}],shipped:[{label:"✅ تأكيد الاستلام",next:"verification",allow:["buyer","admin"]},{label:"⚠ رفع نزاع",next:"disputed",allow:["buyer","admin"]}],verification:[{label:"🎉 تحرير الأموال",next:"complete",allow:["admin"]},{label:"⚠ رفع نزاع",next:"disputed",allow:["buyer","admin"]}],complete:[],disputed:[{label:"🔍 حل النزاع",next:"complete",allow:["admin"]}]},totalProtected:"إجمالي محمي",success:"نجاح",myDealsCount:"صفقاتي",adminFull:"صلاحية أدمن كاملة",protected:"محمي",conds:["ممتاز","جيد جداً","جيد","مقبول"],seller2:"البائع",publishedOn:"نشر",welcome:"مرحباً",errEmailMissing:"البريد غير موجود.",errPass:"كلمة المرور خاطئة.",errName:"أدخل الاسم.",errEmail:"بريد غير صالح.",errShortPass:"كلمة مرور قصيرة (4+).",errExists:"البريد مسجّل مسبقاً.",errBuyerMissing:"بريد المشتري غير موجود.",errSellerMissing:"بريد البائع غير موجود.",errSame:"لا يمكن أن يكونا نفس الشخص.",errSize:"حجم الصورة أكبر من",adminPanel:"لوحة إدارة الحسابات",loading:"جاري التحميل...",firebaseSetup:"إعداد Firebase",firebaseDesc:"لتشغيل التطبيق مع قاعدة بيانات حقيقية",setupStep1:"أنشئ مشروعاً في Firebase Console",setupStep2:"فعّل Authentication → Email/Password",setupStep3:"أنشئ Firestore Database",setupStep4:"أنشئ Storage Bucket",setupStep5:"انسخ إعدادات المشروع وضعها في الكود",openConsole:"افتح Firebase Console",offline:"وضع تجريبي (بدون Firebase)",saving:"جاري الحفظ...",uploading:"جاري رفع الصورة...",supportBtn:"💬 الدعم",supportTitle:"مركز الدعم",supportSub:"كيف يمكننا مساعدتك؟",newTicket:"+ تذكرة جديدة",ticketSubject:"موضوع المشكلة",ticketCategory:"نوع المشكلة",ticketMsg:"وصف المشكلة",submitTicket:"إرسال للدعم 🚀",ticketCats:["مشكلة في صفقة","مشكلة في الدفع","مشكلة تقنية","حساب وكلمة مرور","أخرى"],myTickets:"تذاكري",allTickets:"كل التذاكر",ticketOpen:"مفتوحة",ticketPending:"قيد المراجعة",ticketClosed:"مغلقة",noTickets:"لا توجد تذاكر بعد",typeReply:"اكتب ردك...",sendReply:"إرسال",closeTicket:"✅ إغلاق التذكرة",ticketID:"رقم التذكرة",ticketDate:"التاريخ",botName:"مساعد تراست 🤖",botWelcome:"مرحباً! أنا المساعد الآلي لـ تراست بريدج 🛡️ سأحاول مساعدتك الآن، وسيتواصل معك أحد المختصين قريباً.",supportHeader:"الدعم الفني"},
+  en:{dir:"ltr",font:"Inter,sans-serif",appName:"TrustBridge",appSub:"Secure Escrow Platform",login:"Sign In",register:"Create Account",email:"Email Address",password:"Password",name:"Full Name",phone:"Phone Number",country:"Country",language:"Language",role:"I am a...",buyer:"Buyer",seller:"Seller",both:"Both",loginBtn:"Sign In 🔒",registerBtn:"Create Account ✨",verifyEmail:"Verify Your Email",verifyDesc:"We sent a 6-digit code to",verifyCode:"Verification Code",enterCode:"Enter code",verify:"Verify ✓",resend:"Resend Code",verified:"Verified!",codeDemo:"📧 Demo code:",settingsTitle:"Settings",langCountry:"Language & Country",selectLang:"Language",selectCountry:"Country",save:"Save",cancel:"Cancel",newDeal:"🔒 Deal",newListing:"🏪 Listing",myDeals:"🔒 My Deals",market:"🏪 Market",editProfile:"✏️ Edit Profile",logout:"Sign Out 🚪",profileTitle:"Profile",infoTab:"Info 👤",securityTab:"Security 🔒",uploadPhoto:"Click to upload profile photo",photoHint:"JPG, PNG — max 2MB",photoSelected:"Photo selected ✓",clickChange:"Click to change",bioLabel:"Bio",bioPlaceholder:"Tell others about yourself...",newPass:"New Password",passPlaceholder:"Leave blank to keep current",emailNote:"Email address cannot be changed",saveChanges:"💾 Save Changes",saved:"✅ Saved!",publishListing:"List Item on Market",publishSub:"Add real photos of your item",photos:"Item Photos",dragPhotos:"Drag photos here or click to upload",dragHint:"Up to 6 photos · JPG, PNG · 3MB each",title2:"Item Title",price:"Price ($)",category:"Category",condition:"Condition",desc:"Description",publish:"🚀 Publish Listing",directDeal:"Direct Escrow Deal",directSub:"For parties who already agreed",productName:"Product Name",amount:"Amount ($)",buyerEmail:"Buyer's Email",sellerEmail:"Seller's Email",next:"Next →",back:"Back",create:"🔒 Create Deal",noDeals:"No deals yet. Create a deal or browse the market!",noListings:"No listings in this category.",sendMsg:"📨 Send Message",msgSent:"Message Sent!",msgSentSub:"The seller will contact you to finalize the escrow deal.",contactSeller:"💬 Contact Seller",msgPlaceholder:"Tell the seller you're interested...",confirmDeal:"✅ Confirm Deal",requests:"Contact Requests",noRequests:"No requests yet 📭",dealNum:"Deal ID",product:"Product",amount2:"Amount",buyerN:"Buyer",sellerN:"Seller",date:"Date",fees:"Platform Fee",adminControl:"👑 Admin Controls",deleteBtn:"🗑 Delete",fromMarket:"From Market 🏪",cats:["All","Electronics","Clothing","Sports","Furniture","Books","Music","Vehicles","Other"],tabs:[["all","All"],["pending","Pending"],["funded","Funded"],["shipped","Shipped"],["complete","Complete"],["disputed","Disputed"]],statuses:{pending:"Awaiting Payment",funded:"Funds Held",shipped:"Shipped",verification:"In Review",complete:"Complete",disputed:"Disputed"},steps:["Created","Payment","Shipped","Review","Done"],actions:{pending:[{label:"💳 Fund Escrow",next:"funded",allow:["buyer","admin"]}],funded:[{label:"📦 Mark Shipped",next:"shipped",allow:["seller","admin"]},{label:"⚠ Raise Dispute",next:"disputed",allow:["buyer","admin"]}],shipped:[{label:"✅ Confirm Receipt",next:"verification",allow:["buyer","admin"]},{label:"⚠ Raise Dispute",next:"disputed",allow:["buyer","admin"]}],verification:[{label:"🎉 Release Funds",next:"complete",allow:["admin"]},{label:"⚠ Raise Dispute",next:"disputed",allow:["buyer","admin"]}],complete:[],disputed:[{label:"🔍 Resolve Dispute",next:"complete",allow:["admin"]}]},totalProtected:"Total Protected",success:"Success Rate",myDealsCount:"My Deals",adminFull:"Full admin access — all deals visible",protected:"Protected",conds:["Excellent","Very Good","Good","Fair"],seller2:"Seller",publishedOn:"Listed on",welcome:"Welcome",errEmailMissing:"Email not found.",errPass:"Wrong password.",errName:"Please enter your name.",errEmail:"Invalid email.",errShortPass:"Password too short (4+).",errExists:"Email already registered.",errBuyerMissing:"Buyer email not found.",errSellerMissing:"Seller email not found.",errSame:"Buyer and seller cannot be the same.",errSize:"File too large:",adminPanel:"Account Management Panel",loading:"Loading...",firebaseSetup:"Firebase Setup",firebaseDesc:"To run with a real database",setupStep1:"Create a project in Firebase Console",setupStep2:"Enable Authentication → Email/Password",setupStep3:"Create Firestore Database",setupStep4:"Create Storage Bucket",setupStep5:"Copy project config and paste it in the code",openConsole:"Open Firebase Console",offline:"Demo Mode (No Firebase)",saving:"Saving...",uploading:"Uploading image...",supportBtn:"💬 Support",supportTitle:"Support Center",supportSub:"How can we help you?",newTicket:"+ New Ticket",ticketSubject:"Issue Subject",ticketCategory:"Issue Type",ticketMsg:"Describe your issue",submitTicket:"Submit Ticket 🚀",ticketCats:["Deal Issue","Payment Issue","Technical Issue","Account & Password","Other"],myTickets:"My Tickets",allTickets:"All Tickets",ticketOpen:"Open",ticketPending:"In Review",ticketClosed:"Closed",noTickets:"No tickets yet",typeReply:"Type your reply...",sendReply:"Send",closeTicket:"✅ Close Ticket",ticketID:"Ticket ID",ticketDate:"Date",botName:"TrustBot 🤖",botWelcome:"Hello! I'm TrustBridge's automated assistant 🛡️ I'll try to help you right away. A support agent will follow up shortly.",supportHeader:"Support",}
+};
+
+const COUNTRIES=[
+  {code:"SA",flag:"🇸🇦",ar:"السعودية",en:"Saudi Arabia"},
+  {code:"AE",flag:"🇦🇪",ar:"الإمارات",en:"UAE"},
+  {code:"EG",flag:"🇪🇬",ar:"مصر",en:"Egypt"},
+  {code:"KW",flag:"🇰🇼",ar:"الكويت",en:"Kuwait"},
+  {code:"QA",flag:"🇶🇦",ar:"قطر",en:"Qatar"},
+  {code:"BH",flag:"🇧🇭",ar:"البحرين",en:"Bahrain"},
+  {code:"OM",flag:"🇴🇲",ar:"عُمان",en:"Oman"},
+  {code:"JO",flag:"🇯🇴",ar:"الأردن",en:"Jordan"},
+  {code:"MA",flag:"🇲🇦",ar:"المغرب",en:"Morocco"},
+  {code:"DZ",flag:"🇩🇿",ar:"الجزائر",en:"Algeria"},
+  {code:"TN",flag:"🇹🇳",ar:"تونس",en:"Tunisia"},
+  {code:"IQ",flag:"🇮🇶",ar:"العراق",en:"Iraq"},
+  {code:"US",flag:"🇺🇸",ar:"الولايات المتحدة",en:"United States"},
+  {code:"GB",flag:"🇬🇧",ar:"المملكة المتحدة",en:"United Kingdom"},
+  {code:"DE",flag:"🇩🇪",ar:"ألمانيا",en:"Germany"},
+  {code:"FR",flag:"🇫🇷",ar:"فرنسا",en:"France"},
+  {code:"TR",flag:"🇹🇷",ar:"تركيا",en:"Turkey"},
+  {code:"IN",flag:"🇮🇳",ar:"الهند",en:"India"},
+  {code:"PK",flag:"🇵🇰",ar:"باكستان",en:"Pakistan"},
+  {code:"Other",flag:"🌍",ar:"أخرى",en:"Other"},
+];
+
+/* ════ FIREBASE STATUS ════ */
+let FB_STATUS = 'checking'; // 'checking' | 'ready' | 'offline'
+
+/* ════ OFFLINE DB (localStorage fallback) ════ */
+const LS = {
+  get(key, def){ try{ const v=localStorage.getItem('tb_'+key); return v?JSON.parse(v):def; }catch(e){ return def; }},
+  set(key,val){ try{ localStorage.setItem('tb_'+key, JSON.stringify(val)); }catch(e){} },
+};
+
+/* ════ LOCAL DB ════ */
+const LocalDB = {
+  accounts: LS.get('accounts', {
+    "ahmed@trust.com":{pass:"1234",name:"أحمد الكريمي",avatar:null,bio:"مشتري نشيط",role:"مشتري",phone:"",country:"SA",lang:"ar",verified:true},
+    "maria@trust.com":{pass:"1234",name:"Maria Lopez",avatar:null,bio:"Trusted seller ✓",role:"بائع",phone:"",country:"US",lang:"en",verified:true},
+    "yyes7378@gmail.com":{pass:"yuuichi katagiri",name:"kdr_ynd",avatar:null,bio:"",role:"director",phone:"",country:"SA",lang:"ar",verified:true},
+  }),
+  deals: LS.get('deals', [
+    {id:"TRX-4821",item:"MacBook Pro 14",amount:1850,status:"verification",buyerEmail:"ahmed@trust.com",sellerEmail:"maria@trust.com",buyerName:"أحمد الكريمي",sellerName:"Maria Lopez",created:"2026-03-06"},
+    {id:"TRX-3391",item:"دراجة هوائية",amount:620,status:"shipped",buyerEmail:"ahmed@trust.com",sellerEmail:"maria@trust.com",buyerName:"أحمد الكريمي",sellerName:"Maria Lopez",created:"2026-03-07"},
+  ]),
+  listings: LS.get('listings', [
+    {id:"LST-001",title:"iPhone 15 Pro Max",price:1200,desc:"Excellent condition, used 3 months, original box included.",category:"Electronics",sellerEmail:"maria@trust.com",sellerName:"Maria Lopez",sellerAvatar:null,images:[],emoji:"📱",created:"2026-03-05",requests:[],condition:"Excellent"},
+    {id:"LST-002",title:"دراجة هوائية كانونديل",price:850,desc:"دراجة رياضية احترافية مقاس 27.5، استعملتها موسم واحد فقط.",category:"رياضة",sellerEmail:"ahmed@trust.com",sellerName:"أحمد الكريمي",sellerAvatar:null,images:[],emoji:"🚲",created:"2026-03-06",requests:[],condition:"جيد جداً"},
+  ]),
+  save(){ LS.set('accounts',this.accounts); LS.set('deals',this.deals); LS.set('listings',this.listings); },
+  listeners:[],listListeners:[],
+  subscribe(fn){ this.listeners.push(fn); return()=>{ this.listeners=this.listeners.filter(l=>l!==fn); }; },
+  subscribeListing(fn){ this.listListeners.push(fn); return()=>{ this.listListeners=this.listListeners.filter(l=>l!==fn); }; },
+  notify(){ this.listeners.forEach(fn=>fn([...this.deals])); },
+  notifyL(){ this.listListeners.forEach(fn=>fn([...this.listings])); },
+  addDeal(d){ this.deals=[d,...this.deals]; this.save(); this.notify(); },
+  updateDeal(id,p){ this.deals=this.deals.map(d=>d.id===id?{...d,...p}:d); this.save(); this.notify(); },
+  deleteDeal(id){ this.deals=this.deals.filter(d=>d.id!==id); this.save(); this.notify(); },
+  addListing(l){ this.listings=[l,...this.listings]; this.save(); this.notifyL(); },
+  deleteListing(id){ this.listings=this.listings.filter(l=>l.id!==id); this.save(); this.notifyL(); },
+  addRequest(lid,req){ this.listings=this.listings.map(l=>l.id===lid?{...l,requests:[...(l.requests||[]),req]}:l); this.save(); this.notifyL(); },
+  confirmDealFromListing(lid,bEmail){
+    const l=this.listings.find(x=>x.id===lid); if(!l)return;
+    const deal={id:`TRX-${Math.floor(1000+Math.random()*9000)}`,item:l.title,amount:l.price,status:"pending",buyerEmail:bEmail,sellerEmail:l.sellerEmail,buyerName:this.accounts[bEmail]?.name||bEmail,sellerName:l.sellerName,created:new Date().toISOString().slice(0,10),fromListing:lid};
+    this.addDeal(deal); this.deleteListing(lid); return deal;
+  },
+  addAccount(email,acc){ this.accounts[email]=acc; this.save(); },
+  updateAccount(email,patch){ if(this.accounts[email]) this.accounts[email]={...this.accounts[email],...patch}; this.save(); },
+  // ════ SUPPORT TICKETS ════
+  tickets: LS.get('tickets', []),
+  ticketListeners:[],
+  subscribeTickets(fn){ this.ticketListeners.push(fn); return()=>{ this.ticketListeners=this.ticketListeners.filter(l=>l!==fn); }; },
+  notifyTickets(){ this.ticketListeners.forEach(fn=>fn([...this.tickets])); },
+  addTicket(ticket){ this.tickets=[ticket,...this.tickets]; LS.set('tickets',this.tickets); this.notifyTickets(); },
+  updateTicket(id,patch){ this.tickets=this.tickets.map(tk=>tk.id===id?{...tk,...patch}:tk); LS.set('tickets',this.tickets); this.notifyTickets(); },
+  addTicketMsg(id,msg){ this.tickets=this.tickets.map(tk=>tk.id===id?{...tk,messages:[...(tk.messages||[]),msg],updatedAt:new Date().toISOString()}:tk); LS.set('tickets',this.tickets); this.notifyTickets(); },
+};
+
+/* ════ FIREBASE DB WRAPPER ════ */
+const FireDB = {
+  // عند وجود Firebase، نستخدم Firestore
+  async addDeal(d) {
+    if(!window.FB) return LocalDB.addDeal(d);
+    const {db,collection,addDoc,serverTimestamp}=window.FB;
+    try {
+      const ref = await addDoc(collection(db,'deals'), {...d, createdAt: serverTimestamp()});
+      d.firestoreId = ref.id;
+    } catch(e) { console.error(e); LocalDB.addDeal(d); }
+  },
+  async updateDeal(id, patch) {
+    if(!window.FB) return LocalDB.updateDeal(id,patch);
+    const {db,collection,getDocs,query,where,updateDoc,doc}=window.FB;
+    try {
+      const q = query(collection(db,'deals'), where('id','==',id));
+      const snap = await getDocs(q);
+      snap.forEach(async d => await updateDoc(doc(db,'deals',d.id), patch));
+    } catch(e) { LocalDB.updateDeal(id,patch); }
+  },
+  async deleteDeal(id) {
+    if(!window.FB) return LocalDB.deleteDeal(id);
+    const {db,collection,getDocs,query,where,deleteDoc,doc}=window.FB;
+    try {
+      const q = query(collection(db,'deals'), where('id','==',id));
+      const snap = await getDocs(q);
+      snap.forEach(async d => await deleteDoc(doc(db,'deals',d.id)));
+    } catch(e) { LocalDB.deleteDeal(id); }
+  },
+};
+
+/* ════ HELPERS ════ */
+const readFile=f=>new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(f);});
+const genCode=()=>String(Math.floor(100000+Math.random()*900000));
+const useT=(lang)=>T[lang]||T.ar;
+
+function Spinner({size=24,color}){
+  return <div className="spin" style={{width:size,height:size,border:`3px solid ${color||C.accent}33`,borderTopColor:color||C.accent,borderRadius:'50%'}}/>;
+}
+
+function Avatar({src,letter,size=40,border=C.accent,bg=C.accentDim,color=C.accent,glow=false}){
+  return src
+    ?<img src={src} style={{width:size,height:size,borderRadius:"50%",objectFit:"cover",border:`2px solid ${border}`,boxShadow:glow?`0 0 16px ${border}88`:"none",flexShrink:0}}/>
+    :<div style={{width:size,height:size,borderRadius:"50%",background:bg,border:`2px solid ${border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:size*0.38,fontWeight:700,color,flexShrink:0,boxShadow:glow?`0 0 16px ${border}88`:"none"}}>{letter}</div>;
+}
+
+function Shield({size=40,glow=false}){
+  return(
+    <svg width={size} height={size} viewBox="0 0 40 40" fill="none" style={glow?{filter:`drop-shadow(0 0 10px ${C.accent})`}:{}}>
+      <path d="M20 3L5 9v10c0 9 6.5 17 15 19 8.5-2 15-10 15-19V9L20 3z" fill={C.accent+"22"} stroke={C.accent} strokeWidth="1.5"/>
+      <path d="M14 20l4 4 8-8" stroke={C.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
+function Inp({t,...props}){
+  return <input {...props} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 14px",color:C.text,fontSize:14,width:"100%",textAlign:t.dir==="rtl"?"right":"left",direction:t.dir,fontFamily:t.font,...(props.style||{})}}/>;
+}
+function Sel({t,children,...props}){
+  return(
+    <select {...props} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 14px",color:C.text,fontSize:14,width:"100%",cursor:"pointer",direction:t.dir,fontFamily:t.font,...(props.style||{})}}>
+      {children}
+    </select>
+  );
+}
+
+/* ════ FIREBASE SETUP GUIDE ════ */
+function FirebaseSetup({t,onOffline}){
+  const [lang]=useState(t.dir==="rtl"?"ar":"en");
+  const steps = t.dir==="rtl"
+    ? ["اذهب إلى console.firebase.google.com","أنشئ مشروعاً جديداً (New Project)","فعّل Authentication → Sign-in method → Email/Password","أنشئ Firestore Database (ابدأ في وضع الاختبار)","أنشئ Storage Bucket","اذهب إلى Project Settings → Your Apps → Web App","انسخ firebaseConfig والصقه في الكود (السطر ~35)"]
+    : ["Go to console.firebase.google.com","Create a new project","Enable Authentication → Sign-in method → Email/Password","Create Firestore Database (start in test mode)","Create Storage Bucket","Go to Project Settings → Your Apps → Web App","Copy firebaseConfig and paste it in the code (line ~35)"];
+  return(
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:C.bg,padding:24,fontFamily:t.font,direction:t.dir}}>
+      <div style={{maxWidth:520,width:"100%"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontSize:64,marginBottom:10}}>🔥</div>
+          <div style={{fontSize:24,fontWeight:800}}>{t.firebaseSetup}</div>
+          <div style={{color:C.muted,fontSize:13,marginTop:6}}>{t.firebaseDesc}</div>
+        </div>
+        <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:18,padding:24,marginBottom:16}}>
+          <div style={{fontWeight:700,marginBottom:16,color:C.accent}}>📋 {t.dir==="rtl"?"خطوات الإعداد":"Setup Steps"}</div>
+          {steps.map((step,i)=>(
+            <div key={i} style={{display:"flex",gap:12,alignItems:"flex-start",marginBottom:12}}>
+              <div style={{width:26,height:26,borderRadius:"50%",background:C.accentDim,border:`2px solid ${C.accent}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:C.accent,flexShrink:0}}>{i+1}</div>
+              <div style={{color:C.text,fontSize:13,paddingTop:4,lineHeight:1.6}}>{step}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{background:"#1E293B",border:`1px solid ${C.accent}44`,borderRadius:14,padding:16,marginBottom:16,fontSize:12,color:C.muted,fontFamily:"monospace",direction:"ltr"}}>
+          <div style={{color:C.accent,marginBottom:8,fontFamily:t.font,fontSize:11}}>📄 {t.dir==="rtl"?"بعد النسخ، استبدل السطور هذه:":"After copying, replace these lines:"}</div>
+          <div style={{color:"#60A5FA"}}>const firebaseConfig = {"{"}</div>
+          <div style={{paddingRight:16}}>
+            <div>apiKey: <span style={{color:"#34D399"}}>"YOUR_API_KEY"</span>,</div>
+            <div>authDomain: <span style={{color:"#34D399"}}>"YOUR_PROJECT.firebaseapp.com"</span>,</div>
+            <div>projectId: <span style={{color:"#34D399"}}>"YOUR_PROJECT_ID"</span>,</div>
+            <div>storageBucket: <span style={{color:"#34D399"}}>"YOUR_PROJECT.appspot.com"</span>,</div>
+            <div>messagingSenderId: <span style={{color:"#34D399"}}>"YOUR_SENDER_ID"</span>,</div>
+            <div>appId: <span style={{color:"#34D399"}}>"YOUR_APP_ID"</span></div>
+          </div>
+          <div style={{color:"#60A5FA"}}>{"}"}</div>
+        </div>
+        <div style={{display:"flex",gap:10}}>
+          <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" style={{flex:2,background:C.accent,color:C.bg,border:"none",borderRadius:12,padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",textAlign:"center",textDecoration:"none",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            🔥 {t.openConsole}
+          </a>
+          <button onClick={onOffline} style={{flex:1,background:C.surface,color:C.muted,border:`1px solid ${C.border}`,borderRadius:12,padding:"13px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>
+            {t.offline}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════ SETTINGS MODAL ════ */
+function SettingsModal({lang,country,onSave,onClose,t}){
+  const [l,setL]=useState(lang);
+  const [c,setC]=useState(country);
+  return(
+    <div style={{position:"fixed",inset:0,background:"#00000099",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(6px)"}}>
+      <div style={{background:C.card,border:`1px solid ${C.accent}44`,borderRadius:20,padding:32,width:420,maxWidth:"95vw",fontFamily:t.font,direction:t.dir}}>
+        <div style={{fontWeight:800,fontSize:18,marginBottom:22}}>🌐 {t.langCountry}</div>
+        <div style={{marginBottom:16}}>
+          <div style={{color:C.muted,fontSize:12,marginBottom:8}}>{t.selectLang}</div>
+          <div style={{display:"flex",gap:10}}>
+            {[["ar","العربية","🇸🇦"],["en","English","🇺🇸"]].map(([code,label,flag])=>(
+              <button key={code} onClick={()=>setL(code)} style={{flex:1,background:l===code?C.accentDim:C.surface,color:l===code?C.accent:C.muted,border:`2px solid ${l===code?C.accent:C.border}`,borderRadius:12,padding:"14px 0",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>
+                <div style={{fontSize:28,marginBottom:4}}>{flag}</div>
+                <div>{label}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:24}}>
+          <div style={{color:C.muted,fontSize:12,marginBottom:8}}>{t.selectCountry}</div>
+          <Sel t={t} value={c} onChange={e=>setC(e.target.value)}>
+            {COUNTRIES.map(ct=>(<option key={ct.code} value={ct.code}>{ct.flag} {t.dir==="rtl"?ct.ar:ct.en}</option>))}
+          </Sel>
+        </div>
+        <div style={{display:"flex",gap:10}}>
+          <button onClick={onClose} style={{flex:1,background:C.surface,color:C.muted,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 0",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{t.cancel}</button>
+          <button onClick={()=>onSave(l,c)} style={{flex:2,background:C.accent,color:C.bg,border:"none",borderRadius:10,padding:"12px 0",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{t.save}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════ VERIFY EMAIL MODAL ════ */
+function VerifyModal({email,code,onVerified,onClose,t}){
+  const [input,setInput]=useState("");
+  const [err,setErr]=useState("");
+  const [shake,setShake]=useState(false);
+  const verify=()=>{
+    if(input===code){onVerified();}
+    else{setErr(t.dir==="rtl"?"كود خاطئ، حاول مجددًا":"Wrong code, try again.");setShake(true);setTimeout(()=>setShake(false),500);}
+  };
+  return(
+    <div style={{position:"fixed",inset:0,background:"#00000099",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(6px)"}}>
+      <div style={{background:C.card,border:`1px solid ${C.accent}44`,borderRadius:24,padding:36,width:420,maxWidth:"95vw",textAlign:"center",fontFamily:t.font,direction:t.dir,transform:shake?"translateX(8px)":"none",transition:"transform .1s"}}>
+        <div style={{fontSize:56,marginBottom:12}}>📧</div>
+        <div style={{fontWeight:800,fontSize:20,marginBottom:8}}>{t.verifyEmail}</div>
+        <div style={{color:C.muted,fontSize:13,marginBottom:24}}>{t.verifyDesc} <b style={{color:C.accent}}>{email}</b></div>
+        <div style={{marginBottom:16}}>
+          <input value={input} onChange={e=>{setErr("");setInput(e.target.value.replace(/\D/g,"").slice(0,6));}}
+            maxLength={6} type="text" inputMode="numeric" placeholder={t.enterCode}
+            style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 14px",color:C.text,fontSize:18,width:"100%",textAlign:"center",letterSpacing:8,fontFamily:t.font}}
+            autoFocus onKeyDown={e=>e.key==="Enter"&&verify()}/>
+        </div>
+        {err&&<div style={{color:C.danger,fontSize:13,marginBottom:12}}>⚠ {err}</div>}
+        <button onClick={verify} disabled={input.length!==6} style={{background:input.length===6?C.accent:C.border,color:C.bg,border:"none",borderRadius:12,padding:"13px 0",width:"100%",fontSize:15,fontWeight:700,cursor:input.length===6?"pointer":"default",marginBottom:12,fontFamily:t.font}}>
+          {t.verify}
+        </button>
+        <div style={{background:C.accentDim,border:`1px solid ${C.accent}33`,borderRadius:10,padding:"10px 14px",marginBottom:12}}>
+          <div style={{color:C.accent,fontSize:13,fontWeight:700}}>{t.codeDemo} <span style={{letterSpacing:4,fontSize:20}}>{code}</span></div>
+          <div style={{color:C.muted,fontSize:10,marginTop:3}}>{t.dir==="rtl"?"(في التطبيق الحقيقي يُرسل للبريد)":"(In production this is sent via email)"}</div>
+        </div>
+        <button onClick={onClose} style={{background:"none",border:"none",color:C.muted,fontSize:12,cursor:"pointer",fontFamily:t.font}}>{t.cancel}</button>
+      </div>
+    </div>
+  );
+}
+
+/* ════ AUTH SCREEN ════ */
+function AuthScreen({onLogin,fbReady}){
+  const [lang,setLang]=useState("ar");
+  const [country,setCountry]=useState("SA");
+  const [mode,setMode]=useState("login");
+  const [email,setEmail]=useState("");
+  const [pass,setPass]=useState("");
+  const [name,setName]=useState("");
+  const [role,setRole]=useState("");
+  const [phone,setPhone]=useState("");
+  const [err,setErr]=useState("");
+  const [loading,setLoading]=useState(false);
+  const [verifyState,setVerifyState]=useState(null);
+  const [showSettings,setShowSettings]=useState(false);
+  const t=useT(lang);
+
+  const login=async()=>{
+    setErr(""); setLoading(true);
+    if(fbReady && window.FB){
+      try{
+        const {auth,signInWithEmailAndPassword,db,doc,getDoc}=window.FB;
+        const cred = await signInWithEmailAndPassword(auth, email, pass);
+        const uDoc = await getDoc(doc(db,'users',cred.user.uid));
+        const data = uDoc.exists() ? uDoc.data() : {};
+        onLogin({email, uid:cred.user.uid, name:data.name||email, avatar:data.avatar||null, bio:data.bio||"", role:data.role||"مشتري", phone:data.phone||"", country:data.country||"SA", lang:data.lang||"ar"});
+      } catch(e){
+        const msg = e.code==="auth/user-not-found"?t.errEmailMissing:e.code==="auth/wrong-password"?t.errPass:e.message;
+        setErr(msg);
+      }
+    } else {
+      // offline mode
+      const acc=LocalDB.accounts[email];
+      if(!acc){setErr(t.errEmailMissing);setLoading(false);return;}
+      if(acc.pass!==pass){setErr(t.errPass);setLoading(false);return;}
+      onLogin({email,...acc,lang:acc.lang||lang,country:acc.country||country});
+    }
+    setLoading(false);
+  };
+
+  const register=async()=>{
+    setErr(""); 
+    if(!name.trim())return setErr(t.errName);
+    if(!email.includes("@"))return setErr(t.errEmail);
+    if(pass.length<4)return setErr(t.errShortPass);
+    if(LocalDB.accounts[email])return setErr(t.errExists);
+    setLoading(true);
+    const r=role||(lang==="ar"?"مشتري":"Buyer");
+    const acc={pass,name,avatar:null,bio:"",role:r,phone,country,lang,verified:true};
+    LocalDB.addAccount(email,acc);
+    onLogin({email,...acc});
+    setLoading(false);
+  };
+
+  const onVerified=async()=>{
+    setLoading(true);
+    const r=role||(lang==="ar"?"مشتري":"Buyer");
+    if(fbReady && window.FB){
+      try{
+        const {auth,createUserWithEmailAndPassword,db,doc,setDoc,serverTimestamp}=window.FB;
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        const userData={name,role:r,phone,country,lang,bio:"",avatar:null,createdAt:serverTimestamp()};
+        await setDoc(doc(db,'users',cred.user.uid), userData);
+        setVerifyState(null);
+        onLogin({email,uid:cred.user.uid,...userData});
+      } catch(e){
+        setErr(e.code==="auth/email-already-in-use"?t.errExists:e.message);
+        setVerifyState(null);
+      }
+    } else {
+      const acc={...verifyState.pendingAcc,verified:true};
+      LocalDB.addAccount(email,acc);
+      setVerifyState(null);
+      onLogin({email,...acc});
+    }
+    setLoading(false);
+  };
+
+  const flagOfCountry=COUNTRIES.find(c=>c.code===country)?.flag||"🌍";
+
+  return(
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:C.bg,padding:24,fontFamily:t.font,direction:t.dir}}>
+      <div style={{width:460,maxWidth:"100%"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <button onClick={()=>setShowSettings(true)} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"8px 14px",color:C.text,fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontFamily:t.font}}>
+            <span>{flagOfCountry}</span><span style={{color:C.muted}}>|</span><span>{lang==="ar"?"العربية":"English"}</span><span style={{color:C.accent,fontSize:10}}>▼</span>
+          </button>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            {fbReady
+              ?<span style={{background:C.accentDim,color:C.accent,borderRadius:6,padding:"3px 10px",fontSize:10,fontWeight:700}}>🔥 Firebase</span>
+              :<span style={{background:"#F5A62322",color:C.gold,borderRadius:6,padding:"3px 10px",fontSize:10,fontWeight:700}}>📱 {t.dir==="rtl"?"وضع تجريبي":"Demo Mode"}</span>
+            }
+          </div>
+        </div>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <Shield size={54} glow/>
+          <div style={{fontSize:28,fontWeight:800,marginTop:10}}>{t.appName}</div>
+          <div style={{color:C.muted,fontSize:13,marginTop:4}}>{t.appSub}</div>
+        </div>
+        <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:22,padding:28}}>
+          <div style={{display:"flex",background:C.surface,borderRadius:12,padding:4,marginBottom:24}}>
+            {[[t.login,"login"],[t.register,"register"]].map(([l,m])=>(
+              <button key={m} onClick={()=>{setMode(m);setErr("");}} style={{flex:1,background:mode===m?C.accent:"transparent",color:mode===m?C.bg:C.muted,border:"none",borderRadius:9,padding:"10px 0",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{l}</button>
+            ))}
+          </div>
+          {mode==="login"&&(
+            <div style={{display:"flex",flexDirection:"column",gap:13}}>
+              <div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.email}</div>
+                <Inp t={t} value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="you@example.com" onKeyDown={e=>e.key==="Enter"&&login()}/></div>
+              <div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.password}</div>
+                <Inp t={t} value={pass} onChange={e=>setPass(e.target.value)} type="password" placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&login()}/></div>
+              {err&&<div style={{background:"#FF4D6D22",borderRadius:8,padding:"10px 14px",color:C.danger,fontSize:13}}>⚠ {err}</div>}
+              <button onClick={login} disabled={loading} style={{background:C.accent,color:C.bg,border:"none",borderRadius:10,padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:t.font,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+                {loading?<Spinner size={18} color={C.bg}/>:t.loginBtn}
+              </button>
+              {!fbReady&&(
+                <div style={{background:C.accentDim,border:`1px solid ${C.accent}33`,borderRadius:12,padding:14}}>
+                  <div style={{color:C.accent,fontSize:11,fontWeight:700,marginBottom:10}}>🔑 {t.dir==="rtl"?"حسابات تجريبية":"Demo Accounts"}</div>
+                  {[["ahmed@trust.com","1234","مشتري / Buyer"],["maria@trust.com","1234","بائع / Seller"]].map(([e,p,r])=>(
+                    <div key={e} onClick={()=>{setEmail(e);setPass(p);}} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:`1px solid ${C.border}`,cursor:"pointer"}}>
+                      <span style={{color:C.muted,fontSize:11}}>{r}</span>
+                      <span style={{color:C.text,fontSize:12,fontWeight:600}}>{e}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {mode==="register"&&(
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.name}</div>
+                <Inp t={t} value={name} onChange={e=>setName(e.target.value)} placeholder={lang==="ar"?"محمد أحمد":"John Smith"}/></div>
+              <div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.email}</div>
+                <Inp t={t} value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="you@example.com"/></div>
+              <div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.password}</div>
+                <Inp t={t} value={pass} onChange={e=>setPass(e.target.value)} type="password" placeholder="4+ characters"/></div>
+              <div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.phone} ({lang==="ar"?"اختياري":"optional"})</div>
+                <Inp t={t} value={phone} onChange={e=>setPhone(e.target.value)} type="tel" placeholder="+1 234 567 8900" style={{direction:"ltr",textAlign:"left"}}/></div>
+              <div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.country}</div>
+                <Sel t={t} value={country} onChange={e=>setCountry(e.target.value)}>
+                  {COUNTRIES.map(ct=><option key={ct.code} value={ct.code}>{ct.flag} {lang==="ar"?ct.ar:ct.en}</option>)}
+                </Sel></div>
+              <div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.role}</div>
+                <div style={{display:"flex",gap:8}}>
+                  {[[lang==="ar"?"مشتري":"Buyer",t.buyer],[lang==="ar"?"بائع":"Seller",t.seller],[lang==="ar"?"كلاهما":"Both",t.both]].map(([val,label])=>(
+                    <button key={val} onClick={()=>setRole(val)} style={{flex:1,background:role===val?C.accentDim:C.surface,color:role===val?C.accent:C.muted,border:`1px solid ${role===val?C.accent:C.border}`,borderRadius:8,padding:"9px 4px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{label}</button>
+                  ))}
+                </div></div>
+              {err&&<div style={{background:"#FF4D6D22",borderRadius:8,padding:"10px 14px",color:C.danger,fontSize:13}}>⚠ {err}</div>}
+              <button onClick={register} disabled={loading} style={{background:C.accent,color:C.bg,border:"none",borderRadius:10,padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:t.font,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+                {loading?<Spinner size={18} color={C.bg}/>:t.registerBtn}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      {showSettings&&<SettingsModal lang={lang} country={country} t={t} onClose={()=>setShowSettings(false)} onSave={(l,c)=>{setLang(l);setCountry(c);setShowSettings(false);}}/>}
+      {verifyState&&<VerifyModal email={email} code={verifyState.code} t={t} onVerified={onVerified} onClose={()=>setVerifyState(null)}/>}
+    </div>
+  );
+}
+
+/* ════ PROFILE MODAL ════ */
+function ProfileModal({user,t,onClose,onUpdate,fbReady}){
+  const [name,setName]=useState(user.name);
+  const [bio,setBio]=useState(user.bio||"");
+  const [phone,setPhone]=useState(user.phone||"");
+  const [pass,setPass]=useState("");
+  const [avatar,setAvatar]=useState(user.avatar||null);
+  const [preview,setPreview]=useState(user.avatar||null);
+  const [tab,setTab]=useState("info");
+  const [saved,setSaved]=useState(false);
+  const [saving,setSaving]=useState(false);
+  const fileRef=useRef();
+
+  const pickImg=async e=>{
+    const f=e.target.files[0]; if(!f)return;
+    if(f.size>2097152){alert(`${t.errSize} 2MB`);return;}
+    const d=await readFile(f);
+    setPreview(d); setAvatar(d);
+  };
+
+  const save=async()=>{
+    if(!name.trim())return;
+    setSaving(true);
+    let avatarUrl = avatar;
+
+    // رفع الصورة على Firebase Storage إن وُجد
+    if(fbReady && window.FB && avatar && avatar.startsWith('data:')){
+      try {
+        const {storage,ref,uploadString,getDownloadURL}=window.FB;
+        const storageRef = ref(storage,`avatars/${user.uid||user.email}`);
+        await uploadString(storageRef, avatar, 'data_url');
+        avatarUrl = await getDownloadURL(storageRef);
+      } catch(e){ console.warn('Storage upload failed, using local',e); }
+    }
+
+    const patch={name,bio,phone,avatar:avatarUrl};
+    if(pass.length>=4) patch.pass=pass;
+
+    if(fbReady && window.FB && user.uid){
+      try {
+        const {db,doc,updateDoc}=window.FB;
+        await updateDoc(doc(db,'users',user.uid), {name,bio,phone,avatar:avatarUrl});
+      } catch(e){ console.warn(e); }
+    }
+    LocalDB.updateAccount(user.email, patch);
+    onUpdate({...user,...patch,avatar:avatarUrl});
+    setSaved(true); setSaving(false);
+    setTimeout(()=>setSaved(false),2000);
+  };
+
+  return(
+    <div style={{position:"fixed",inset:0,background:"#00000099",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(6px)"}}>
+      <div style={{background:C.card,border:`1px solid ${C.accent}44`,borderRadius:24,width:500,maxWidth:"95vw",maxHeight:"90vh",overflowY:"auto",fontFamily:t.font,direction:t.dir}}>
+        <div style={{background:`linear-gradient(135deg,${C.accent}22,${C.purple}22)`,borderRadius:"24px 24px 0 0",padding:"34px 28px 18px",textAlign:"center",borderBottom:`1px solid ${C.border}`,position:"relative"}}>
+          <button onClick={onClose} style={{position:"absolute",top:14,left:14,background:"none",border:"none",color:C.muted,fontSize:22,cursor:"pointer"}}>×</button>
+          <div style={{position:"relative",display:"inline-block",marginBottom:10}}>
+            <Avatar src={preview} letter={user.name[0]} size={88} border={C.accent} glow/>
+            <button onClick={()=>fileRef.current.click()} style={{position:"absolute",bottom:0,left:0,background:C.accent,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>📷</button>
+            <input ref={fileRef} type="file" accept="image/*" style={{display:"none"}} onChange={pickImg}/>
+          </div>
+          <div style={{fontWeight:800,fontSize:17}}>{name}</div>
+          <div style={{color:C.muted,fontSize:12,marginTop:2}}>{user.email}</div>
+        </div>
+        <div style={{display:"flex",background:C.surface,padding:4,gap:4,margin:"14px 20px 0"}}>
+          {[[t.infoTab,"info"],[t.securityTab,"security"]].map(([l,tv])=>(
+            <button key={tv} onClick={()=>setTab(tv)} style={{flex:1,background:tab===tv?C.accent:"transparent",color:tab===tv?C.bg:C.muted,border:"none",borderRadius:8,padding:"8px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{l}</button>
+          ))}
+        </div>
+        <div style={{padding:"16px 20px 24px"}}>
+          {tab==="info"&&(<div style={{display:"flex",flexDirection:"column",gap:14}}>
+            <div onClick={()=>fileRef.current.click()} style={{border:`2px dashed ${C.border}`,borderRadius:14,padding:16,textAlign:"center",cursor:"pointer"}} onMouseOver={e=>e.currentTarget.style.borderColor=C.accent} onMouseOut={e=>e.currentTarget.style.borderColor=C.border}>
+              {preview?<div style={{display:"flex",alignItems:"center",gap:12,justifyContent:"center"}}><img src={preview} style={{width:50,height:50,borderRadius:"50%",objectFit:"cover",border:`2px solid ${C.accent}`}}/><div><div style={{fontWeight:700,fontSize:13}}>{t.photoSelected}</div><div style={{color:C.muted,fontSize:11}}>{t.clickChange}</div></div></div>
+              :<div><div style={{fontSize:30,marginBottom:4}}>📷</div><div style={{color:C.muted,fontSize:13}}>{t.uploadPhoto}</div><div style={{color:C.muted,fontSize:11,marginTop:2}}>{t.photoHint}</div></div>}
+            </div>
+            <div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.name}</div><Inp t={t} value={name} onChange={e=>setName(e.target.value)}/></div>
+            <div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.bioLabel}</div><textarea value={bio} onChange={e=>setBio(e.target.value)} rows={3} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 14px",color:C.text,fontSize:14,width:"100%",resize:"vertical",direction:t.dir,fontFamily:t.font}} placeholder={t.bioPlaceholder}/></div>
+            <div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.phone}</div><Inp t={t} value={phone} onChange={e=>setPhone(e.target.value)} type="tel" style={{direction:"ltr",textAlign:"left"}}/></div>
+          </div>)}
+          {tab==="security"&&(<div style={{display:"flex",flexDirection:"column",gap:14}}>
+            <div style={{background:"#60A5FA22",border:"1px solid #60A5FA44",borderRadius:12,padding:14}}>
+              <div style={{color:"#60A5FA",fontWeight:700,fontSize:13,marginBottom:4}}>ℹ {t.email}</div>
+              <div style={{color:C.text,fontSize:14,fontWeight:600}}>{user.email}</div>
+              <div style={{color:C.muted,fontSize:11,marginTop:3}}>{t.emailNote}</div>
+            </div>
+            {!fbReady&&<div><div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.newPass}</div><Inp t={t} value={pass} onChange={e=>setPass(e.target.value)} type="password" placeholder={t.passPlaceholder}/></div>}
+            {fbReady&&<div style={{background:C.accentDim,borderRadius:10,padding:12,color:C.muted,fontSize:12}}>{t.dir==="rtl"?"لتغيير كلمة المرور مع Firebase، استخدم 'نسيت كلمة المرور' في صفحة تسجيل الدخول":"To change password with Firebase, use 'Forgot Password' on login page"}</div>}
+          </div>)}
+          <button onClick={save} disabled={saving} style={{background:saved?"#059669":C.accent,color:C.bg,border:"none",borderRadius:10,padding:"13px",width:"100%",fontSize:14,fontWeight:700,cursor:"pointer",marginTop:18,fontFamily:t.font,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+            {saving?<><Spinner size={18} color={C.bg}/>{t.saving}</>:saved?t.saved:t.saveChanges}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════ LISTING MODAL ════ */
+function ListingModal({user,t,onClose,fbReady}){
+  const [title,setTitle]=useState(""); const [price,setPrice]=useState(""); const [desc,setDesc]=useState("");
+  const [cat,setCat]=useState(t.cats[1]||""); const [cond,setCond]=useState(t.conds[0]);
+  const [images,setImages]=useState([]); const [dragging,setDragging]=useState(false);
+  const [publishing,setPublishing]=useState(false);
+  const fileRef=useRef();
+  const addImgs=async files=>{const arr=Array.from(files).slice(0,6-images.length);for(const f of arr){if(f.size>3145728){alert(`${t.errSize} 3MB`);continue;}const d=await readFile(f);setImages(p=>[...p,d].slice(0,6));}};
+  const drop=e=>{e.preventDefault();setDragging(false);addImgs(e.dataTransfer.files);};
+
+  const submit=async()=>{
+    if(!title||!price||!desc)return;
+    setPublishing(true);
+    let uploadedImages = [...images];
+
+    // رفع الصور على Firebase Storage
+    if(fbReady && window.FB){
+      try {
+        const {storage,ref,uploadString,getDownloadURL}=window.FB;
+        const uploaded=[];
+        for(let i=0;i<images.length;i++){
+          const storageRef=ref(storage,`listings/${Date.now()}_${i}`);
+          await uploadString(storageRef, images[i], 'data_url');
+          const url=await getDownloadURL(storageRef);
+          uploaded.push(url);
+        }
+        uploadedImages=uploaded;
+      } catch(e){ console.warn('Storage failed, using local images',e); }
+    }
+
+    const listing={id:`LST-${Math.floor(1000+Math.random()*9000)}`,title,price:parseFloat(price),desc,category:cat,condition:cond,sellerEmail:user.email,sellerName:user.name,sellerAvatar:user.avatar||null,images:uploadedImages,emoji:"📦",created:new Date().toISOString().slice(0,10),requests:[]};
+
+    if(fbReady && window.FB){
+      try {
+        const {db,collection,addDoc,serverTimestamp}=window.FB;
+        const docRef=await addDoc(collection(db,'listings'),{...listing,createdAt:serverTimestamp()});
+        listing.firestoreId=docRef.id;
+      } catch(e){ console.warn(e); }
+    }
+    LocalDB.addListing(listing);
+    setPublishing(false);
+    onClose();
+  };
+
+  return(
+    <div style={{position:"fixed",inset:0,background:"#00000090",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}}>
+      <div style={{background:C.card,border:`1px solid ${C.purple}55`,borderRadius:20,padding:28,width:520,maxWidth:"95vw",maxHeight:"92vh",overflowY:"auto",fontFamily:t.font,direction:t.dir,position:"relative"}}>
+        <button onClick={onClose} style={{position:"absolute",top:14,left:14,background:"none",border:"none",color:C.muted,fontSize:22,cursor:"pointer"}}>×</button>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20}}><div style={{fontSize:26}}>🏪</div><div><div style={{fontWeight:800,fontSize:16}}>{t.publishListing}</div><div style={{color:C.muted,fontSize:11}}>{t.publishSub}</div></div></div>
+        <div style={{marginBottom:14}}>
+          <div style={{color:C.muted,fontSize:11,marginBottom:8}}>📸 {t.photos} <span style={{color:C.purple}}>({images.length}/6)</span></div>
+          <div onDrop={drop} onDragOver={e=>{e.preventDefault();setDragging(true);}} onDragLeave={()=>setDragging(false)} onClick={()=>fileRef.current.click()}
+            style={{border:`2px dashed ${dragging?C.purple:C.border}`,borderRadius:14,padding:images.length?10:24,textAlign:"center",cursor:"pointer",background:dragging?C.purple+"11":"transparent",transition:"all .2s"}}>
+            {images.length===0&&<div><div style={{fontSize:34,marginBottom:6}}>🖼️</div><div style={{color:C.muted,fontSize:13}}>{t.dragPhotos}</div><div style={{color:C.muted,fontSize:11,marginTop:2}}>{t.dragHint}</div></div>}
+            {images.length>0&&<div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
+              {images.map((img,i)=>(
+                <div key={i} style={{position:"relative",borderRadius:10,overflow:"hidden",aspectRatio:"1"}}>
+                  <img src={img} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                  <button onClick={e=>{e.stopPropagation();setImages(p=>p.filter((_,j)=>j!==i));}} style={{position:"absolute",top:4,left:4,background:"#000a",border:"none",borderRadius:"50%",width:22,height:22,color:"#fff",cursor:"pointer",fontSize:13}}>×</button>
+                  {i===0&&<div style={{position:"absolute",bottom:4,right:4,background:C.accent,color:C.bg,borderRadius:4,padding:"1px 5px",fontSize:9,fontWeight:700}}>{t.dir==="rtl"?"رئيسية":"Main"}</div>}
+                </div>
+              ))}
+              {images.length<6&&<div style={{border:`1px dashed ${C.border}`,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,color:C.muted,aspectRatio:"1",cursor:"pointer"}}>+</div>}
+            </div>}
+            <input ref={fileRef} type="file" accept="image/*" multiple style={{display:"none"}} onChange={e=>addImgs(e.target.files)}/>
+          </div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <div><div style={{color:C.muted,fontSize:11,marginBottom:5}}>{t.title2}</div><Inp t={t} value={title} onChange={e=>setTitle(e.target.value)} placeholder={t.dir==="rtl"?"مثال: آيفون 14 برو":"e.g. iPhone 14 Pro"}/></div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            <div><div style={{color:C.muted,fontSize:11,marginBottom:5}}>{t.price}</div><Inp t={t} value={price} onChange={e=>setPrice(e.target.value)} type="number" placeholder="0.00"/></div>
+            <div><div style={{color:C.muted,fontSize:11,marginBottom:5}}>{t.category}</div>
+              <Sel t={t} value={cat} onChange={e=>setCat(e.target.value)}>{t.cats.filter(c=>c!==t.cats[0]).map(c=><option key={c} value={c}>{c}</option>)}</Sel></div>
+          </div>
+          <div><div style={{color:C.muted,fontSize:11,marginBottom:5}}>{t.condition}</div>
+            <div style={{display:"flex",gap:8}}>{t.conds.map(c=>(
+              <button key={c} onClick={()=>setCond(c)} style={{flex:1,background:cond===c?C.purple+"33":C.surface,color:cond===c?C.purple:C.muted,border:`1px solid ${cond===c?C.purple:C.border}`,borderRadius:8,padding:"8px 4px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{c}</button>
+            ))}</div></div>
+          <div><div style={{color:C.muted,fontSize:11,marginBottom:5}}>{t.desc}</div><textarea value={desc} onChange={e=>setDesc(e.target.value)} rows={3} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 14px",color:C.text,fontSize:14,width:"100%",resize:"vertical",direction:t.dir,fontFamily:t.font}}/></div>
+          <button onClick={submit} disabled={!title||!price||!desc||publishing} style={{background:(!title||!price||!desc)?C.purple+"55":C.purple,color:C.bg,border:"none",borderRadius:10,padding:"13px",fontSize:14,fontWeight:700,cursor:(!title||!price||!desc)?"default":"pointer",fontFamily:t.font,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+            {publishing?<><Spinner size={18} color={C.bg}/>{t.uploading}</>:t.publish}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════ BADGE ════ */
+function Badge({status,t}){
+  const colors={pending:"#F5A623",funded:C.accent,shipped:"#60A5FA",verification:"#F5A623",complete:C.accent,disputed:C.danger};
+  const col=colors[status]||C.muted;
+  return <span style={{background:col+"22",color:col,border:`1px solid ${col}55`,borderRadius:6,padding:"3px 10px",fontSize:11,fontWeight:700}}>{t.statuses[status]||status}</span>;
+}
+
+/* ════ STEP BAR ════ */
+function StepBar({current,t}){return(
+  <div style={{display:"flex",alignItems:"center",width:"100%",marginBottom:20}}>
+    {t.steps.map((s,i)=>{const done=i<current,active=i===current;return(
+      <div key={s} style={{display:"flex",alignItems:"center",flex:1}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",flex:1}}>
+          <div style={{width:28,height:28,borderRadius:"50%",background:done?C.accent:active?C.accentDim:C.border,border:`2px solid ${done||active?C.accent:C.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:done?C.bg:active?C.accent:C.muted}}>{done?"✓":i+1}</div>
+          <span style={{fontSize:9,color:active?C.accent:done?C.text:C.muted,marginTop:3,textAlign:"center",fontFamily:t.font}}>{s}</span>
+        </div>
+        {i<t.steps.length-1&&<div style={{height:2,flex:1,background:done?C.accent:C.border,marginBottom:16}}/>}
+      </div>
+    );})}
+  </div>
+);}
+
+/* ════ LISTING DETAIL ════ */
+function ListingDetail({listing,user,t,onClose,fbReady}){
+  const [lst,setLst]=useState(listing);
+  const [msg,setMsg]=useState(""); const [sent,setSent]=useState(false); const [imgIdx,setImgIdx]=useState(0);
+  const isMine=listing.sellerEmail===user.email, isAdmin=user.role==="admin";
+  const alreadyReq=(lst.requests||[]).some(r=>r.buyerEmail===user.email);
+  const condColors={Excellent:C.accent,"Very Good":"#60A5FA",Good:C.gold,Fair:C.muted,ممتاز:C.accent,"جيد جداً":"#60A5FA",جيد:C.gold,مقبول:C.muted};
+  useEffect(()=>LocalDB.subscribeListing(ls=>{const f=ls.find(x=>x.id===lst.id);if(f)setLst(f);else onClose();}),[]);
+
+  const sendReq=async()=>{
+    if(!msg.trim())return;
+    const req={buyerEmail:user.email,buyerName:user.name,buyerAvatar:user.avatar||null,buyerLetter:user.name[0],msg,time:new Date().toLocaleTimeString()};
+    if(fbReady && window.FB && lst.firestoreId){
+      try {
+        const {db,doc,updateDoc}=window.FB;
+        const current=lst.requests||[];
+        await updateDoc(doc(db,'listings',lst.firestoreId),{requests:[...current,req]});
+      } catch(e){ console.warn(e); }
+    }
+    LocalDB.addRequest(lst.id,req);
+    setMsg(""); setSent(true);
+  };
+
+  const confirmDeal=async bEmail=>{
+    if(window.confirm(`${t.confirmDeal}?`)){
+      const deal=LocalDB.confirmDealFromListing(lst.id,bEmail);
+      if(fbReady && window.FB && deal){
+        try {
+          const {db,collection,addDoc,serverTimestamp}=window.FB;
+          await addDoc(collection(db,'deals'),{...deal,createdAt:serverTimestamp()});
+          if(lst.firestoreId){
+            const {doc,deleteDoc}=window.FB;
+            await deleteDoc(doc(db,'listings',lst.firestoreId));
+          }
+        } catch(e){ console.warn(e); }
+      }
+      onClose();
+    }
+  };
+
+  const hasImages=lst.images&&lst.images.length>0;
+  return(
+    <div style={{position:"fixed",inset:0,background:"#00000099",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}}>
+      <div style={{background:C.card,border:`1px solid ${C.purple}44`,borderRadius:20,width:560,maxWidth:"95vw",maxHeight:"92vh",overflowY:"auto",fontFamily:t.font,direction:t.dir,position:"relative"}}>
+        <button onClick={onClose} style={{position:"absolute",top:14,left:14,background:"none",border:"none",color:C.muted,fontSize:22,cursor:"pointer",zIndex:10}}>×</button>
+        {hasImages?(
+          <div style={{position:"relative",background:"#000",borderRadius:"20px 20px 0 0",overflow:"hidden"}}>
+            <img src={lst.images[imgIdx]} style={{width:"100%",height:260,objectFit:"contain"}}/>
+            {lst.images.length>1&&<>
+              <button onClick={()=>setImgIdx(i=>(i+1)%lst.images.length)} style={{position:"absolute",left:10,top:"50%",transform:"translateY(-50%)",background:"#000a",border:"none",borderRadius:"50%",width:34,height:34,color:"#fff",cursor:"pointer",fontSize:18}}>‹</button>
+              <button onClick={()=>setImgIdx(i=>(i-1+lst.images.length)%lst.images.length)} style={{position:"absolute",right:10,top:"50%",transform:"translateY(-50%)",background:"#000a",border:"none",borderRadius:"50%",width:34,height:34,color:"#fff",cursor:"pointer",fontSize:18}}>›</button>
+              <div style={{position:"absolute",bottom:8,left:"50%",transform:"translateX(-50%)",display:"flex",gap:5}}>
+                {lst.images.map((_,i)=><div key={i} onClick={()=>setImgIdx(i)} style={{width:i===imgIdx?18:7,height:7,borderRadius:4,background:i===imgIdx?C.accent:"#fff6",cursor:"pointer"}}/>)}
+              </div>
+            </>}
+          </div>
+        ):(
+          <div style={{background:`linear-gradient(135deg,${C.purple}22,${C.bg})`,borderRadius:"20px 20px 0 0",padding:"36px 16px 18px",textAlign:"center",borderBottom:`1px solid ${C.border}`}}>
+            <div style={{fontSize:68}}>{lst.emoji||"📦"}</div>
+          </div>
+        )}
+        <div style={{padding:22}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12,flexWrap:"wrap",gap:8}}>
+            <div style={{flex:1}}><div style={{fontWeight:800,fontSize:20,marginBottom:8}}>{lst.title}</div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                <span style={{background:C.purple+"33",color:C.purple,borderRadius:6,padding:"2px 10px",fontSize:11,fontWeight:700}}>{lst.category}</span>
+                <span style={{background:(condColors[lst.condition]||C.muted)+"22",color:condColors[lst.condition]||C.muted,borderRadius:6,padding:"2px 10px",fontSize:11,fontWeight:700}}>{lst.condition}</span>
+              </div>
+            </div>
+            <div style={{color:C.accent,fontWeight:800,fontSize:26}}>${lst.price?.toLocaleString()}</div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:12,background:C.surface,borderRadius:12,padding:12,marginBottom:14}}>
+            <Avatar src={lst.sellerAvatar} letter={lst.sellerName?.[0]||"?"} size={38} border={C.accent}/>
+            <div style={{flex:1}}><div style={{fontWeight:700,fontSize:13}}>{lst.sellerName}</div><div style={{color:C.muted,fontSize:11}}>{t.seller2} · {lst.created}</div></div>
+          </div>
+          <div style={{background:C.surface,borderRadius:12,padding:14,marginBottom:14}}>
+            <div style={{color:C.text,fontSize:13,lineHeight:1.9}}>{lst.desc}</div>
+          </div>
+          {(isMine||isAdmin)&&(
+            <div style={{marginBottom:14}}>
+              <div style={{fontWeight:700,fontSize:13,marginBottom:10}}>{t.requests} ({(lst.requests||[]).length})</div>
+              {(lst.requests||[]).length===0&&<div style={{color:C.muted,fontSize:12,textAlign:"center",padding:"12px 0"}}>{t.noRequests}</div>}
+              {(lst.requests||[]).map((r,i)=>(
+                <div key={i} style={{background:C.surface,borderRadius:12,padding:12,marginBottom:8,border:`1px solid ${C.border}`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                    <Avatar src={r.buyerAvatar} letter={r.buyerLetter||"?"} size={32} border={C.accent}/>
+                    <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12}}>{r.buyerName}</div><div style={{color:C.muted,fontSize:10}}>{r.time}</div></div>
+                    {isMine&&<button onClick={()=>confirmDeal(r.buyerEmail)} style={{background:C.accent,color:C.bg,border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{t.confirmDeal}</button>}
+                  </div>
+                  <div style={{background:C.card,borderRadius:8,padding:"8px 12px",fontSize:12,color:C.text,lineHeight:1.7}}>"{r.msg}"</div>
+                </div>
+              ))}
+            </div>
+          )}
+          {!isMine&&!isAdmin&&(
+            sent||alreadyReq
+              ?<div style={{background:C.accentDim,border:`1px solid ${C.accent}44`,borderRadius:12,padding:18,textAlign:"center"}}><div style={{fontSize:34,marginBottom:6}}>✅</div><div style={{fontWeight:700,color:C.accent}}>{t.msgSent}</div><div style={{color:C.muted,fontSize:12,marginTop:4}}>{t.msgSentSub}</div></div>
+              :<div>
+                <div style={{fontWeight:700,fontSize:13,marginBottom:8}}>{t.contactSeller}</div>
+                <textarea value={msg} onChange={e=>setMsg(e.target.value)} rows={3} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 14px",color:C.text,fontSize:14,width:"100%",resize:"vertical",direction:t.dir,fontFamily:t.font,marginBottom:10}} placeholder={t.msgPlaceholder}/>
+                <button onClick={sendReq} disabled={!msg.trim()} style={{background:!msg.trim()?C.purple+"55":C.purple,color:C.bg,border:"none",borderRadius:10,padding:"12px",width:"100%",fontSize:14,fontWeight:700,cursor:!msg.trim()?"default":"pointer",fontFamily:t.font}}>{t.sendMsg}</button>
+              </div>
+          )}
+          {isAdmin&&<button onClick={()=>{if(window.confirm("Delete?")){LocalDB.deleteListing(lst.id);onClose();}}} style={{background:C.danger,color:C.bg,border:"none",borderRadius:10,padding:"10px",width:"100%",fontSize:12,fontWeight:700,cursor:"pointer",marginTop:10,fontFamily:t.font}}>{t.deleteBtn}</button>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════ CREATE DEAL MODAL ════ */
+function CreateModal({user,t,onClose,fbReady}){
+  const [step,setStep]=useState(0);
+  const [item,setItem]=useState(""); const [amount,setAmount]=useState(""); const [desc,setDesc]=useState("");
+  const [buyerEmail,setBuyer]=useState(""); const [sellerEmail,setSeller]=useState(""); const [err,setErr]=useState("");
+  const [creating,setCreating]=useState(false);
+
+  const create=async()=>{
+    setErr(""); setCreating(true);
+    // تحقق إن كانت البريدين موجودين
+    const buyerExists = LocalDB.accounts[buyerEmail] || (fbReady && window.FB);
+    const sellerExists = LocalDB.accounts[sellerEmail] || (fbReady && window.FB);
+    if(!buyerExists && !fbReady){setErr(t.errBuyerMissing);setCreating(false);return;}
+    if(!sellerExists && !fbReady){setErr(t.errSellerMissing);setCreating(false);return;}
+    if(buyerEmail===sellerEmail){setErr(t.errSame);setCreating(false);return;}
+
+    const deal={id:`TRX-${Math.floor(1000+Math.random()*9000)}`,item,amount:parseFloat(amount),status:"pending",buyerEmail,sellerEmail,buyerName:LocalDB.accounts[buyerEmail]?.name||buyerEmail,sellerName:LocalDB.accounts[sellerEmail]?.name||sellerEmail,created:new Date().toISOString().slice(0,10)};
+
+    if(fbReady && window.FB){
+      try {
+        const {db,collection,addDoc,serverTimestamp}=window.FB;
+        const ref=await addDoc(collection(db,'deals'),{...deal,createdAt:serverTimestamp()});
+        deal.firestoreId=ref.id;
+      } catch(e){ console.warn(e); }
+    }
+    LocalDB.addDeal(deal);
+    setCreating(false);
+    onClose();
+  };
+
+  return(
+    <div style={{position:"fixed",inset:0,background:"#00000088",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:20,padding:28,width:460,maxWidth:"95vw",fontFamily:t.font,direction:t.dir,position:"relative"}}>
+        <button onClick={onClose} style={{position:"absolute",top:14,left:14,background:"none",border:"none",color:C.muted,fontSize:22,cursor:"pointer"}}>×</button>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20}}><Shield size={28}/><div><div style={{fontWeight:800,fontSize:16}}>{t.directDeal}</div><div style={{color:C.muted,fontSize:11}}>{t.directSub}</div></div></div>
+        {step===0&&(<div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <div><div style={{color:C.muted,fontSize:11,marginBottom:5}}>{t.productName}</div><Inp t={t} value={item} onChange={e=>setItem(e.target.value)}/></div>
+          <div><div style={{color:C.muted,fontSize:11,marginBottom:5}}>{t.amount}</div><Inp t={t} value={amount} onChange={e=>setAmount(e.target.value)} type="number" placeholder="0.00"/></div>
+          <div><div style={{color:C.muted,fontSize:11,marginBottom:5}}>{t.desc}</div><textarea value={desc} onChange={e=>setDesc(e.target.value)} rows={2} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px 14px",color:C.text,fontSize:14,width:"100%",resize:"vertical",direction:t.dir,fontFamily:t.font}}/></div>
+          <button onClick={()=>setStep(1)} disabled={!item||!amount} style={{background:(!item||!amount)?C.accent+"55":C.accent,color:C.bg,border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,cursor:(!item||!amount)?"default":"pointer",fontFamily:t.font}}>{t.next}</button>
+        </div>)}
+        {step===1&&(<div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <div style={{background:C.accentDim,borderRadius:10,padding:"10px 14px",fontSize:13,color:C.accent}}>📦 {item} — ${parseFloat(amount||0).toLocaleString()}</div>
+          <div><div style={{color:C.muted,fontSize:11,marginBottom:5}}>{t.buyerEmail}</div><Inp t={t} value={buyerEmail} onChange={e=>setBuyer(e.target.value)} type="email" style={{direction:"ltr",textAlign:"left"}}/></div>
+          <div><div style={{color:C.muted,fontSize:11,marginBottom:5}}>{t.sellerEmail}</div><Inp t={t} value={sellerEmail} onChange={e=>setSeller(e.target.value)} type="email" style={{direction:"ltr",textAlign:"left"}}/></div>
+          {err&&<div style={{background:"#FF4D6D22",borderRadius:8,padding:"10px",color:C.danger,fontSize:12}}>⚠ {err}</div>}
+          <div style={{display:"flex",gap:10}}>
+            <button onClick={()=>setStep(0)} style={{flex:1,background:C.surface,color:C.muted,border:`1px solid ${C.border}`,borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{t.back}</button>
+            <button onClick={create} disabled={!buyerEmail||!sellerEmail||creating} style={{flex:2,background:(!buyerEmail||!sellerEmail)?C.accent+"55":C.accent,color:C.bg,border:"none",borderRadius:10,padding:"12px",fontSize:14,fontWeight:700,cursor:(!buyerEmail||!sellerEmail)?"default":"pointer",fontFamily:t.font,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+              {creating?<><Spinner size={18} color={C.bg}/>{t.saving}</>:t.create}
+            </button>
+          </div>
+        </div>)}
+      </div>
+    </div>
+  );
+}
+
+/* ════ DEAL DETAIL ════ */
+function DealDetail({deal,user,t,onClose,fbReady}){
+  const [d,setD]=useState(deal);
+  useEffect(()=>LocalDB.subscribe(deals=>{const f=deals.find(x=>x.id===d.id);if(f)setD(f);else onClose();}),[]);
+  const isAdmin=user.role==="admin";
+  const stepMap={pending:0,funded:1,shipped:2,verification:3,complete:4,disputed:1};
+  const act=async next=>{
+    LocalDB.updateDeal(d.id,{status:next});
+    if(fbReady && window.FB && d.firestoreId){
+      try {
+        const {db,doc,updateDoc}=window.FB;
+        await updateDoc(doc(db,'deals',d.firestoreId),{status:next});
+      } catch(e){ console.warn(e); }
+    }
+  };
+  const actions=t.actions[d.status]||[];
+  const userRole=d.buyerEmail===user.email?"buyer":d.sellerEmail===user.email?"seller":user.role==="admin"?"admin":"other";
+  return(
+    <div style={{position:"fixed",inset:0,background:"#00000099",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}}>
+      <div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:20,padding:28,width:500,maxWidth:"95vw",maxHeight:"90vh",overflowY:"auto",fontFamily:t.font,direction:t.dir,position:"relative"}}>
+        <button onClick={onClose} style={{position:"absolute",top:14,left:14,background:"none",border:"none",color:C.muted,fontSize:22,cursor:"pointer"}}>×</button>
+        <div style={{marginBottom:14}}>
+          <div style={{color:C.muted,fontSize:11,marginBottom:4}}>{t.dealNum}</div>
+          <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}><span style={{fontWeight:800,fontSize:18}}>{d.id}</span><Badge status={d.status} t={t}/>{d.fromListing&&<span style={{background:C.purple+"22",color:C.purple,borderRadius:5,padding:"1px 7px",fontSize:10}}>{t.fromMarket}</span>}</div>
+        </div>
+        <StepBar current={stepMap[d.status]??0} t={t}/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+          {[[t.product,d.item],[t.amount2,`$${d.amount?.toLocaleString()}`],[t.buyerN,d.buyerName],[t.sellerN,d.sellerName],[t.date,d.created],[t.fees,`$${(d.amount*0.015).toFixed(2)}`]].map(([k,v])=>(
+            <div key={k} style={{background:C.surface,borderRadius:10,padding:"10px 12px"}}><div style={{color:C.muted,fontSize:10,marginBottom:3}}>{k}</div><div style={{fontWeight:600,fontSize:13}}>{v}</div></div>
+          ))}
+        </div>
+        {isAdmin&&(
+          <div style={{background:"#F5A62322",border:"1px solid #F5A62344",borderRadius:12,padding:14,marginBottom:14}}>
+            <div style={{color:C.gold,fontSize:12,fontWeight:700,marginBottom:8}}>{t.adminControl}</div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:8}}>
+              {Object.keys(t.statuses).map(s=>{const sc={pending:"#F5A623",funded:C.accent,shipped:"#60A5FA",verification:"#F5A623",complete:C.accent,disputed:C.danger};return(
+                <button key={s} onClick={()=>act(s)} style={{background:d.status===s?sc[s]:C.surface,color:d.status===s?C.bg:C.muted,border:`1px solid ${sc[s]||C.muted}55`,borderRadius:7,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{t.statuses[s]}</button>
+              );})}
+            </div>
+            <button onClick={async()=>{if(window.confirm("Delete?")){LocalDB.deleteDeal(d.id);if(fbReady && window.FB && d.firestoreId){try{const {db,doc,deleteDoc}=window.FB;await deleteDoc(doc(db,'deals',d.firestoreId));}catch(e){}}onClose();}}} style={{background:C.danger,color:C.bg,border:"none",borderRadius:8,padding:"8px 0",width:"100%",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{t.deleteBtn}</button>
+          </div>
+        )}
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {actions.filter(a=>a.allow.includes(userRole)).map(a=>(
+            <button key={a.label} onClick={()=>act(a.next)} style={{background:a.next==="disputed"?C.danger:C.accent,color:C.bg,border:"none",borderRadius:10,padding:"13px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{a.label}</button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════ LISTING CARD ════ */
+function ListingCard({listing,t,onClick}){
+  const condColors={Excellent:C.accent,"Very Good":"#60A5FA",Good:C.gold,Fair:C.muted,ممتاز:C.accent,"جيد جداً":"#60A5FA",جيد:C.gold,مقبول:C.muted};
+  const mainImg=listing.images&&listing.images.length>0?listing.images[0]:null;
+  return(
+    <div onClick={onClick} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,overflow:"hidden",cursor:"pointer",transition:"all .2s",fontFamily:t.font,direction:t.dir}}
+      onMouseOver={e=>{e.currentTarget.style.borderColor=C.purple;e.currentTarget.style.transform="translateY(-3px)";}}
+      onMouseOut={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.transform="translateY(0)";}}>
+      <div style={{position:"relative",background:mainImg?"#000":`linear-gradient(135deg,${C.purple}22,${C.bg})`,height:155,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+        {mainImg?<img src={mainImg} style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<div style={{fontSize:54}}>{listing.emoji||"📦"}</div>}
+        <div style={{position:"absolute",top:8,right:8,background:"#000a",borderRadius:6,padding:"2px 8px",fontSize:12,fontWeight:700,color:C.accent}}>${listing.price?.toLocaleString()}</div>
+      </div>
+      <div style={{padding:"12px 14px"}}>
+        <div style={{fontWeight:700,fontSize:13,marginBottom:4}}>{listing.title}</div>
+        <div style={{color:C.muted,fontSize:11,marginBottom:8,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{listing.desc}</div>
+        <div style={{display:"flex",gap:6,marginBottom:8}}>
+          <span style={{background:C.purple+"22",color:C.purple,borderRadius:5,padding:"2px 7px",fontSize:10,fontWeight:700}}>{listing.category}</span>
+          <span style={{background:(condColors[listing.condition]||C.muted)+"22",color:condColors[listing.condition]||C.muted,borderRadius:5,padding:"2px 7px",fontSize:10,fontWeight:700}}>{listing.condition}</span>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:7}}>
+          <Avatar src={listing.sellerAvatar} letter={listing.sellerName?.[0]||"?"} size={24} border={C.accent}/>
+          <span style={{color:C.muted,fontSize:11}}>{listing.sellerName}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ════ BOT AUTO REPLIES ════ */
+const BOT_REPLIES = {
+  ar: [
+    { keywords:["دفع","تمويل","مال","فلوس","حساب بنكي"], reply:"بخصوص مشاكل الدفع: يرجى التأكد من أن بطاقتك البنكية مفعّلة للمدفوعات الإلكترونية. سيتواصل معك فريق الدعم المالي خلال 24 ساعة. 💳" },
+    { keywords:["صفقة","نزاع","خلاف","مشكلة مع"], reply:"بخصوص نزاعات الصفقات: تأكد من توثيق المشكلة بصور أو رسائل. يحق لك رفع نزاع رسمي من داخل الصفقة. ⚖️ سيراجع الأدمن حالتك." },
+    { keywords:["كلمة مرور","نسيت","تسجيل","دخول"], reply:"لاستعادة كلمة المرور: أرسل بريدك الإلكتروني المسجل وسنرسل لك رابط إعادة التعيين. 🔐" },
+    { keywords:["تقني","خطأ","error","مشكلة في","لا يعمل","crash"], reply:"نعتذر عن الإزعاج! ☹️ يرجى وصف المشكلة بالتفصيل (الجهاز، المتصفح، الخطوات) حتى يتمكن الفريق التقني من المساعدة السريعة." },
+    { keywords:["شكر","ممتاز","رائع","شكراً","تمام"], reply:"نشكرك على ثقتك بتراست بريدج! 🙏 نسعى دائماً لتقديم أفضل تجربة. هل هناك شيء آخر يمكننا مساعدتك به؟" },
+  ],
+  en: [
+    { keywords:["payment","pay","fund","money","bank"], reply:"Regarding payment issues: please ensure your card is enabled for online transactions. Our financial support team will reach out within 24 hours. 💳" },
+    { keywords:["deal","dispute","conflict","problem with"], reply:"Regarding deal disputes: document the issue with screenshots or messages. You can raise an official dispute from within the deal. ⚖️ Admin will review your case." },
+    { keywords:["password","forgot","login","sign in"], reply:"To recover your password: send your registered email and we'll send a reset link. 🔐" },
+    { keywords:["technical","error","bug","not working","crash","issue"], reply:"We apologize for the inconvenience! ☹️ Please describe the issue in detail (device, browser, steps) so the technical team can assist you quickly." },
+    { keywords:["thank","great","excellent","awesome","thanks"], reply:"Thank you for trusting TrustBridge! 🙏 We always strive to provide the best experience. Is there anything else we can help you with?" },
+  ]
+};
+
+function getBotReply(text, lang) {
+  const lower = text.toLowerCase();
+  const replies = BOT_REPLIES[lang] || BOT_REPLIES.ar;
+  for(const item of replies){
+    if(item.keywords.some(k=>lower.includes(k))) return item.reply;
+  }
+  return lang==="ar"
+    ? "شكراً على تواصلك مع دعم تراست بريدج 🛡️ استلمنا مشكلتك وسيتواصل معك أحد المختصين في أقرب وقت. رقم تذكرتك محفوظ للمتابعة."
+    : "Thank you for contacting TrustBridge support 🛡️ We've received your issue and a specialist will follow up with you shortly. Your ticket number is saved for tracking.";
+}
+
+/* ════ SUPPORT MODAL ════ */
+function SupportModal({user, t, onClose, isAdmin}){
+  const [tickets,setTickets]=useState([...LocalDB.tickets]);
+  const [view,setView]=useState("list"); // list | new | detail
+  const [selTicket,setSelTicket]=useState(null);
+  const [subject,setSubject]=useState("");
+  const [category,setCategory]=useState("");
+  const [msgText,setMsgText]=useState("");
+  const [replyText,setReplyText]=useState("");
+  const [submitting,setSubmitting]=useState(false);
+  const msgEndRef=useRef(null);
+
+  useEffect(()=>LocalDB.subscribeTickets(tks=>setTickets([...tks])),[]);
+  useEffect(()=>{ if(selTicket){ const updated=tickets.find(tk=>tk.id===selTicket.id); if(updated)setSelTicket(updated); } },[tickets]);
+  useEffect(()=>{ if(msgEndRef.current) msgEndRef.current.scrollIntoView({behavior:"smooth"}); },[selTicket?.messages]);
+
+  const myTickets = isAdmin ? tickets : tickets.filter(tk=>tk.userEmail===user.email);
+  const statusColor = {open:C.accent, pending:C.gold, closed:C.muted};
+  const statusLabel = {open:t.ticketOpen, pending:t.ticketPending, closed:t.ticketClosed};
+
+  const submitTicket = () => {
+    if(!subject.trim()||!msgText.trim())return;
+    setSubmitting(true);
+    const cat = category || t.ticketCats[4];
+    const ticket = {
+      id:`TKT-${Math.floor(1000+Math.random()*9000)}`,
+      subject, category:cat,
+      userEmail:user.email, userName:user.name,
+      status:"open",
+      createdAt:new Date().toISOString(),
+      updatedAt:new Date().toISOString(),
+      messages:[
+        {from:"user",name:user.name,text:msgText,time:new Date().toLocaleTimeString()},
+      ]
+    };
+    LocalDB.addTicket(ticket);
+    // Bot auto-reply after 1.2s
+    setTimeout(()=>{
+      const botReply = getBotReply(msgText, t.dir==="rtl"?"ar":"en");
+      LocalDB.addTicketMsg(ticket.id,{from:"bot",name:t.botName,text:botReply,time:new Date().toLocaleTimeString()});
+      LocalDB.updateTicket(ticket.id,{status:"pending"});
+    },1200);
+    setSubmitting(false);
+    setSubject(""); setMsgText(""); setCategory("");
+    setView("list");
+  };
+
+  const sendReply = (ticket) => {
+    if(!replyText.trim())return;
+    LocalDB.addTicketMsg(ticket.id,{from:isAdmin?"admin":"user",name:user.name,text:replyText,time:new Date().toLocaleTimeString()});
+    if(isAdmin) LocalDB.updateTicket(ticket.id,{status:"pending"});
+    setReplyText("");
+  };
+
+  return(
+    <div style={{position:"fixed",inset:0,background:"#00000099",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(6px)"}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div style={{background:C.card,border:`1px solid ${C.accent}44`,borderRadius:22,width:560,maxWidth:"96vw",maxHeight:"88vh",display:"flex",flexDirection:"column",fontFamily:t.font,direction:t.dir,overflow:"hidden"}}>
+        {/* Header */}
+        <div style={{background:`linear-gradient(135deg,${C.accent}22,${C.surface})`,borderBottom:`1px solid ${C.border}`,padding:"18px 22px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:38,height:38,borderRadius:12,background:C.accentDim,border:`1px solid ${C.accent}44`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🎧</div>
+            <div>
+              <div style={{fontWeight:800,fontSize:16}}>{t.supportTitle}</div>
+              <div style={{color:C.muted,fontSize:11}}>{t.supportSub}</div>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            {view==="list"&&<button onClick={()=>setView("new")} style={{background:C.accent,color:C.bg,border:"none",borderRadius:9,padding:"7px 13px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{t.newTicket}</button>}
+            {view!=="list"&&<button onClick={()=>setView("list")} style={{background:C.surface,color:C.muted,border:`1px solid ${C.border}`,borderRadius:9,padding:"7px 13px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>← {t.myTickets}</button>}
+            <button onClick={onClose} style={{background:"none",border:"none",color:C.muted,fontSize:22,cursor:"pointer",lineHeight:1}}>×</button>
+          </div>
+        </div>
+
+        <div style={{overflowY:"auto",flex:1,padding:"18px 20px"}}>
+          {/* NEW TICKET */}
+          {view==="new"&&(
+            <div style={{display:"flex",flexDirection:"column",gap:14}} className="fade">
+              <div style={{background:C.accentDim,border:`1px solid ${C.accent}33`,borderRadius:12,padding:"12px 16px",display:"flex",gap:10,alignItems:"flex-start"}}>
+                <div style={{fontSize:24,flexShrink:0}}>🤖</div>
+                <div>
+                  <div style={{fontWeight:700,fontSize:12,color:C.accent,marginBottom:3}}>{t.botName}</div>
+                  <div style={{color:C.text,fontSize:12,lineHeight:1.7}}>{t.botWelcome}</div>
+                </div>
+              </div>
+              <div>
+                <div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.ticketCategory}</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:7}}>
+                  {t.ticketCats.map(c=>(
+                    <button key={c} onClick={()=>setCategory(c)} style={{background:category===c?C.accentDim:C.surface,color:category===c?C.accent:C.muted,border:`1px solid ${category===c?C.accent:C.border}`,borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{c}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.ticketSubject}</div>
+                <input value={subject} onChange={e=>setSubject(e.target.value)} placeholder={t.ticketSubject+"..."} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"11px 14px",color:C.text,fontSize:13,width:"100%",direction:t.dir,fontFamily:t.font}}/>
+              </div>
+              <div>
+                <div style={{color:C.muted,fontSize:11,marginBottom:6}}>{t.ticketMsg}</div>
+                <textarea value={msgText} onChange={e=>setMsgText(e.target.value)} rows={4} placeholder={t.ticketMsg+"..."} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"11px 14px",color:C.text,fontSize:13,width:"100%",resize:"vertical",direction:t.dir,fontFamily:t.font}}/>
+              </div>
+              <button onClick={submitTicket} disabled={!subject.trim()||!msgText.trim()||submitting} style={{background:(!subject.trim()||!msgText.trim())?C.accent+"55":C.accent,color:C.bg,border:"none",borderRadius:10,padding:"13px",fontSize:14,fontWeight:700,cursor:(!subject.trim()||!msgText.trim())?"default":"pointer",fontFamily:t.font}}>
+                {submitting?"...":t.submitTicket}
+              </button>
+            </div>
+          )}
+
+          {/* TICKET LIST */}
+          {view==="list"&&(
+            <div className="fade">
+              {myTickets.length===0&&(
+                <div style={{textAlign:"center",padding:"50px 0",color:C.muted}}>
+                  <div style={{fontSize:48,marginBottom:10}}>🎧</div>
+                  <div style={{fontSize:14,marginBottom:6}}>{t.noTickets}</div>
+                  <button onClick={()=>setView("new")} style={{background:C.accent,color:C.bg,border:"none",borderRadius:9,padding:"9px 18px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:t.font,marginTop:8}}>{t.newTicket}</button>
+                </div>
+              )}
+              {myTickets.map(tk=>(
+                <div key={tk.id} onClick={()=>{setSelTicket(tk);setView("detail");}} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:12,padding:"13px 16px",marginBottom:10,cursor:"pointer",transition:"all .2s"}}
+                  onMouseOver={e=>e.currentTarget.style.borderColor=C.accent}
+                  onMouseOut={e=>e.currentTarget.style.borderColor=C.border}>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:5}}>
+                    <div style={{flex:1,fontWeight:700,fontSize:13}}>{tk.subject}</div>
+                    <span style={{background:statusColor[tk.status]+"22",color:statusColor[tk.status],borderRadius:6,padding:"2px 9px",fontSize:10,fontWeight:700}}>{statusLabel[tk.status]}</span>
+                  </div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{background:C.card,color:C.muted,borderRadius:5,padding:"1px 8px",fontSize:10}}>{tk.category}</span>
+                    <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                      {isAdmin&&<span style={{color:C.muted,fontSize:10}}>👤 {tk.userName}</span>}
+                      <span style={{color:C.muted,fontSize:10}}>{tk.id} · {new Date(tk.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* TICKET DETAIL / CHAT */}
+          {view==="detail"&&selTicket&&(
+            <div style={{display:"flex",flexDirection:"column",gap:0}} className="fade">
+              <div style={{background:C.surface,borderRadius:12,padding:"12px 16px",marginBottom:14,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+                <div>
+                  <div style={{fontWeight:700,fontSize:14}}>{selTicket.subject}</div>
+                  <div style={{color:C.muted,fontSize:11,marginTop:2}}>{selTicket.id} · {selTicket.category}</div>
+                </div>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                  <span style={{background:statusColor[selTicket.status]+"22",color:statusColor[selTicket.status],borderRadius:6,padding:"3px 10px",fontSize:11,fontWeight:700}}>{statusLabel[selTicket.status]}</span>
+                  {isAdmin&&selTicket.status!=="closed"&&<button onClick={()=>{LocalDB.updateTicket(selTicket.id,{status:"closed"});}} style={{background:"#FF4D6D22",color:C.danger,border:`1px solid ${C.danger}44`,borderRadius:7,padding:"4px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{t.closeTicket}</button>}
+                </div>
+              </div>
+              {/* Messages */}
+              <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:14,minHeight:200,maxHeight:300,overflowY:"auto",paddingRight:4}}>
+                {(selTicket.messages||[]).map((msg,i)=>{
+                  const isMe=msg.from==="user"&&!isAdmin||msg.from==="admin"&&isAdmin;
+                  const isBot=msg.from==="bot";
+                  return(
+                    <div key={i} style={{display:"flex",flexDirection:"column",alignItems:isMe?"flex-end":"flex-start"}}>
+                      <div style={{fontSize:10,color:C.muted,marginBottom:3,paddingInline:4}}>{msg.name} · {msg.time}</div>
+                      <div style={{maxWidth:"80%",background:isBot?C.accentDim:isMe?C.accent+"33":C.surface,border:`1px solid ${isBot?C.accent+"44":isMe?C.accent+"44":C.border}`,borderRadius:isMe?"14px 14px 4px 14px":"14px 14px 14px 4px",padding:"10px 14px",fontSize:13,color:C.text,lineHeight:1.7}}>
+                        {isBot&&<div style={{color:C.accent,fontSize:10,fontWeight:700,marginBottom:4}}>🤖 {t.botName}</div>}
+                        {msg.text}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={msgEndRef}/>
+              </div>
+              {/* Reply */}
+              {selTicket.status!=="closed"&&(
+                <div style={{display:"flex",gap:8}}>
+                  <input value={replyText} onChange={e=>setReplyText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendReply(selTicket)} placeholder={t.typeReply} style={{flex:1,background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"10px 14px",color:C.text,fontSize:13,direction:t.dir,fontFamily:t.font}}/>
+                  <button onClick={()=>sendReply(selTicket)} disabled={!replyText.trim()} style={{background:!replyText.trim()?C.accent+"44":C.accent,color:C.bg,border:"none",borderRadius:10,padding:"10px 16px",fontSize:13,fontWeight:700,cursor:!replyText.trim()?"default":"pointer",fontFamily:t.font}}>{t.sendReply}</button>
+                </div>
+              )}
+              {selTicket.status==="closed"&&<div style={{textAlign:"center",padding:"10px",color:C.muted,fontSize:12,background:C.surface,borderRadius:10}}>✅ {t.ticketClosed}</div>}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════ MAIN APP ════ */
+function App(){
+  const [fbReady,setFbReady]=useState(false);
+  const [fbChecked,setFbChecked]=useState(false);
+  const [showSetup,setShowSetup]=useState(false);
+  const [user,setUser]=useState(null);
+  const [lang,setLang]=useState("ar");
+  const [country,setCountry]=useState("SA");
+  const [deals,setDeals]=useState([...LocalDB.deals]);
+  const [listings,setListings]=useState([...LocalDB.listings]);
+  const [page,setPage]=useState("deals");
+  const [showCreate,setShowCreate]=useState(false);
+  const [showListing,setShowListing]=useState(false);
+  const [showEditProfile,setShowEditProfile]=useState(false);
+  const [showAdmin,setShowAdmin]=useState(false);
+  const [showSettings,setShowSettings]=useState(false);
+  const [showProfile,setShowProfile]=useState(false);
+  const [showSupport,setShowSupport]=useState(false);
+  const [tickets,setTickets]=useState([...LocalDB.tickets]);
+  const [selDeal,setSelDeal]=useState(null);
+  const [selListing,setSelListing]=useState(null);
+  const [tab,setTab]=useState("all");
+  const [mktCat,setMktCat]=useState("");
+  const t=useT(lang);
+
+  // وضع تجريبي تلقائي - لا حاجة لـ Firebase
+  useEffect(()=>{
+    setFbReady(false);
+    setFbChecked(true);
+    setShowSetup(false);
+  },[]);
+
+  useEffect(()=>{
+    const u=LocalDB.subscribe(d=>setDeals([...d]));
+    const l=LocalDB.subscribeListing(ls=>setListings([...ls]));
+    const tk=LocalDB.subscribeTickets(tks=>setTickets([...tks]));
+    return()=>{u();l();tk();};
+  },[]);
+
+  useEffect(()=>{
+    if(!mktCat&&t.cats.length>0) setMktCat(t.cats[0]);
+  },[lang]);
+
+  const handleLogin=acc=>{
+    setLang(acc.lang||"ar"); setCountry(acc.country||"SA"); setUser(acc);
+    setMktCat(T[acc.lang||"ar"].cats[0]);
+  };
+
+  const handleLogout=async()=>{
+    if(fbReady && window.FB){ try{ await window.FB.signOut(window.FB.auth); }catch(e){} }
+    setUser(null); setShowProfile(false);
+  };
+
+  // عرض شاشة الإعداد
+  if(showSetup && !user){
+    return <FirebaseSetup t={t} onOffline={()=>{setShowSetup(false);setFbChecked(true);}}/>;
+  }
+
+  if(!fbChecked){
+    return(
+      <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:C.bg,fontFamily:"Cairo,sans-serif"}}>
+        <div style={{textAlign:"center"}}>
+          <Spinner size={48}/>
+          <div style={{color:C.muted,marginTop:16,fontSize:13}}>جاري الاتصال بـ Firebase...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if(!user) return <AuthScreen onLogin={handleLogin} fbReady={fbReady}/>;
+
+  const isDirector=user.role==="director";
+  const isAdmin=user.role==="admin"||isDirector;
+  const myDeals=isAdmin?deals:deals.filter(d=>d.buyerEmail===user.email||d.sellerEmail===user.email);
+  const filtDeals=tab==="all"?myDeals:myDeals.filter(d=>d.status===tab);
+  const filtListings=(!mktCat||mktCat===t.cats[0])?listings:listings.filter(l=>l.category===mktCat);
+  const flagNow=COUNTRIES.find(c=>c.code===country)?.flag||"🌍";
+  const DEAL_ICONS={complete:"✅",disputed:"⚠️",verification:"🔍",shipped:"📦",funded:"💰"};
+
+  return(
+    <div style={{minHeight:"100vh",background:C.bg,fontFamily:t.font,direction:t.dir}} onClick={()=>showProfile&&setShowProfile(false)}>
+      {/* Header */}
+      <div style={{background:C.surface,borderBottom:`1px solid ${C.border}`,padding:"0 20px",position:"sticky",top:0,zIndex:50}}>
+        <div style={{maxWidth:1100,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:64,gap:8}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <button onClick={()=>setShowCreate(true)} style={{background:C.accent,color:C.bg,border:"none",borderRadius:10,padding:"9px 13px",fontWeight:700,cursor:"pointer",fontSize:12,fontFamily:t.font}}>{t.newDeal}</button>
+            <button onClick={()=>setShowListing(true)} style={{background:C.purple,color:C.bg,border:"none",borderRadius:10,padding:"9px 13px",fontWeight:700,cursor:"pointer",fontSize:12,fontFamily:t.font}}>{t.newListing}</button>
+            <button onClick={()=>setShowSupport(true)} style={{position:"relative",background:"#0EA5E922",color:"#38BDF8",border:"1px solid #0EA5E944",borderRadius:10,padding:"9px 13px",fontWeight:700,cursor:"pointer",fontSize:12,fontFamily:t.font}}>
+              🎧
+              {(isAdmin?tickets.filter(tk=>tk.status==="open").length:tickets.filter(tk=>tk.userEmail===user.email&&tk.status!=="closed").length)>0&&(
+                <span style={{position:"absolute",top:-5,right:-5,background:C.danger,color:"#fff",borderRadius:"50%",width:16,height:16,fontSize:9,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  {isAdmin?tickets.filter(tk=>tk.status==="open").length:tickets.filter(tk=>tk.userEmail===user.email&&tk.status!=="closed").length}
+                </span>
+              )}
+            </button>
+            {isAdmin&&<button onClick={()=>setShowAdmin(true)} style={{background:"#F5A62322",color:C.gold,border:`1px solid ${C.gold}44`,borderRadius:10,padding:"9px 12px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>👑</button>}
+            <button onClick={()=>setShowSettings(true)} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"8px 11px",cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",gap:6,color:C.muted,fontFamily:t.font}}>
+              {flagNow} <span style={{fontSize:10}}>{lang==="ar"?"AR":"EN"}</span>
+            </button>
+            <div style={{position:"relative"}} onClick={e=>e.stopPropagation()}>
+              <div onClick={()=>setShowProfile(p=>!p)} style={{cursor:"pointer"}}>
+                <Avatar src={user.avatar} letter={user.name[0]} size={37} border={isDirector?"#E879F9":isAdmin?C.gold:C.accent} bg={isDirector?"#E879F922":isAdmin?"#F5A62322":C.accentDim} color={isDirector?"#E879F9":isAdmin?C.gold:C.accent} glow={isAdmin}/>
+              </div>
+              {showProfile&&(
+                <div style={{position:"absolute",top:48,left:0,background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:18,width:230,boxShadow:"0 8px 32px #00000099",zIndex:200,fontFamily:t.font,direction:t.dir}}>
+                  <div style={{textAlign:"center",marginBottom:14}}>
+                    <div style={{display:"flex",justifyContent:"center",marginBottom:8}}><Avatar src={user.avatar} letter={user.name[0]} size={54} border={isDirector?"#E879F9":isAdmin?C.gold:C.accent} glow/></div>
+                    <div style={{fontWeight:700}}>{user.name}{isDirector?" 💎":isAdmin?" 👑":""}</div>
+                    <div style={{color:C.muted,fontSize:11,marginTop:2}}>{user.email}</div>
+                    {isDirector&&<div style={{marginTop:6,background:"#E879F922",borderRadius:6,padding:"3px 10px",display:"inline-block"}}><span style={{color:"#E879F9",fontSize:10,fontWeight:700}}>💎 مدير المنصة</span></div>}
+                    {user.bio&&<div style={{color:C.muted,fontSize:11,marginTop:4,fontStyle:"italic"}}>"{user.bio}"</div>}
+                    {fbReady&&<div style={{marginTop:6,background:C.accentDim,borderRadius:6,padding:"3px 10px",display:"inline-block"}}><span style={{color:C.accent,fontSize:10,fontWeight:700}}>🔥 Firebase</span></div>}
+                  </div>
+                  <div style={{borderTop:`1px solid ${C.border}`,paddingTop:12,display:"flex",flexDirection:"column",gap:8}}>
+                    <button onClick={()=>{setShowProfile(false);setShowEditProfile(true);}} style={{background:C.surface,color:C.text,border:`1px solid ${C.border}`,borderRadius:10,padding:"9px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{t.editProfile}</button>
+                    <button onClick={handleLogout} style={{background:C.danger,color:C.bg,border:"none",borderRadius:10,padding:"9px 0",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{t.logout}</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={{display:"flex",background:C.bg,borderRadius:12,padding:3,gap:3}}>
+            {[["deals",t.myDeals,myDeals.length,C.accent],["market",t.market,listings.length,C.purple]].map(([p,l,cnt,col])=>(
+              <button key={p} onClick={()=>setPage(p)} style={{background:page===p?C.surface:"transparent",color:page===p?C.text:C.muted,border:`1px solid ${page===p?C.border:"transparent"}`,borderRadius:9,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>
+                {l} <span style={{background:page===p?col+"33":C.border,color:page===p?col:C.muted,borderRadius:4,padding:"1px 6px",fontSize:10,marginRight:3}}>{cnt}</span>
+              </button>
+            ))}
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <div style={{textAlign:t.dir==="ltr"?"left":"right"}}>
+              <div style={{fontSize:15,fontWeight:800}}>{t.appName}</div>
+              <div style={{fontSize:9,color:C.muted}}>{t.appSub}</div>
+            </div>
+            <Shield size={30} glow/>
+          </div>
+        </div>
+      </div>
+
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"22px 20px"}}>
+        {page==="deals"&&(
+          <>
+            <div style={{background:C.card,border:`1px solid ${isAdmin?C.gold+"44":C.border}`,borderRadius:14,padding:"12px 18px",marginBottom:18,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+              <Avatar src={user.avatar} letter={user.name[0]} size={44} border={isAdmin?C.gold:C.accent}/>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:15}}>{t.welcome}، {user.name}{isDirector?" 💎":isAdmin?" 👑":""}</div>
+                <div style={{color:C.muted,fontSize:12}}>{isDirector?"💎 مدير المنصة — صلاحيات كاملة":isAdmin?t.adminFull:`${myDeals.length} ${t.myDealsCount}`}</div>
+              </div>
+              {fbReady&&<div style={{background:C.accentDim,borderRadius:8,padding:"6px 12px"}}><span style={{color:C.accent,fontSize:11,fontWeight:700}}>🔥 Firebase Connected</span></div>}
+            </div>
+            <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+              {t.tabs.map(([k,l])=>(
+                <button key={k} onClick={()=>setTab(k)} style={{background:tab===k?C.accent:C.surface,color:tab===k?C.bg:C.muted,border:`1px solid ${tab===k?C.accent:C.border}`,borderRadius:8,padding:"6px 13px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{l}</button>
+              ))}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {filtDeals.length===0&&<div style={{textAlign:"center",padding:60,color:C.muted}}><div style={{fontSize:44,marginBottom:10}}>📭</div><div>{t.noDeals}</div></div>}
+              {filtDeals.map(d=>{
+                const sc={pending:"#F5A623",funded:C.accent,shipped:"#60A5FA",verification:"#F5A623",complete:C.accent,disputed:C.danger};
+                const col=sc[d.status]||C.muted;
+                return(
+                  <div key={d.id} onClick={()=>setSelDeal(d)} style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"13px 16px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,transition:"all .2s"}}
+                    onMouseOver={e=>{e.currentTarget.style.borderColor=col;}} onMouseOut={e=>{e.currentTarget.style.borderColor=C.border;}}>
+                    <div style={{width:42,height:42,borderRadius:10,background:col+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{DEAL_ICONS[d.status]||"🔒"}</div>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3,flexWrap:"wrap"}}>
+                        <span style={{fontWeight:700}}>{d.item}</span><Badge status={d.status} t={t}/>
+                        {d.fromListing&&<span style={{background:C.purple+"22",color:C.purple,borderRadius:5,padding:"1px 7px",fontSize:10}}>{t.fromMarket}</span>}
+                      </div>
+                      <div style={{color:C.muted,fontSize:11}}>{d.id} · {d.buyerName} ↔ {d.sellerName} · {d.created}</div>
+                    </div>
+                    <div style={{textAlign:t.dir==="ltr"?"left":"right",flexShrink:0}}><div style={{fontWeight:800,fontSize:18}}>${d.amount?.toLocaleString()}</div></div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+        {page==="market"&&(
+          <>
+            <div style={{background:`linear-gradient(135deg,${C.purple}22,${C.bg})`,border:`1px solid ${C.purple}44`,borderRadius:16,padding:"18px 22px",marginBottom:18}}>
+              <div style={{fontWeight:800,fontSize:19,marginBottom:3}}>🏪 {t.market.replace("🏪","").trim()}</div>
+            </div>
+            <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>
+              {t.cats.map(c=>(
+                <button key={c} onClick={()=>setMktCat(c)} style={{background:mktCat===c?C.purple:C.surface,color:mktCat===c?C.bg:C.muted,border:`1px solid ${mktCat===c?C.purple:C.border}`,borderRadius:8,padding:"6px 13px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>{c}</button>
+              ))}
+            </div>
+            {filtListings.length===0
+              ?<div style={{textAlign:"center",padding:80,color:C.muted}}><div style={{fontSize:52,marginBottom:10}}>🏪</div><div style={{fontSize:15}}>{t.noListings}</div></div>
+              :<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(225px,1fr))",gap:14}}>
+                {filtListings.map(l=><ListingCard key={l.id} listing={l} t={t} onClick={()=>setSelListing(l)}/>)}
+              </div>
+            }
+          </>
+        )}
+        <div style={{textAlign:"center",marginTop:36,padding:"16px 0",borderTop:`1px solid ${C.border}`,color:C.muted,fontSize:11}}>🛡️ {t.appName} — {t.appSub} · 2026 {fbReady?"· 🔥 Firebase":"· 📱 Demo"}</div>
+      </div>
+
+      {showCreate&&<CreateModal user={user} t={t} onClose={()=>setShowCreate(false)} fbReady={fbReady}/>}
+      {showListing&&<ListingModal user={user} t={t} onClose={()=>setShowListing(false)} fbReady={fbReady}/>}
+      {selDeal&&<DealDetail deal={selDeal} user={user} t={t} onClose={()=>setSelDeal(null)} fbReady={fbReady}/>}
+      {selListing&&<ListingDetail listing={selListing} user={user} t={t} onClose={()=>setSelListing(null)} fbReady={fbReady}/>}
+      {showEditProfile&&<ProfileModal user={user} t={t} onClose={()=>setShowEditProfile(false)} onUpdate={u=>{setUser(u);LocalDB.updateAccount(u.email,u);}} fbReady={fbReady}/>}
+      {showSettings&&<SettingsModal lang={lang} country={country} t={t} onClose={()=>setShowSettings(false)} onSave={(l,c)=>{setLang(l);setCountry(c);setShowSettings(false);if(user){LocalDB.updateAccount(user.email,{lang:l,country:c});setUser(u=>({...u,lang:l,country:c}));}}}/>}
+      {showSupport&&<SupportModal user={user} t={t} onClose={()=>setShowSupport(false)} isAdmin={isAdmin}/>}
+
+      {showAdmin&&(()=>{
+        const [newAdminEmail,setNewAdminEmail]=React.useState("");
+        const [newAdminName,setNewAdminName]=React.useState("");
+        const [newAdminPass,setNewAdminPass]=React.useState("");
+        const [addErr,setAddErr]=React.useState("");
+        const [addOk,setAddOk]=React.useState(false);
+        const [accs,setAccs]=React.useState(Object.entries(LocalDB.accounts));
+        const roleColor={director:"#E879F9",admin:C.gold,مشتري:C.accent,بائع:C.purple,Buyer:C.accent,Seller:C.purple};
+        const roleBadge={director:"💎 مدير",admin:"👑 أدمن"};
+
+        const addAdmin=()=>{
+          setAddErr(""); setAddOk(false);
+          if(!newAdminEmail.includes("@"))return setAddErr("بريد غير صالح");
+          if(!newAdminName.trim())return setAddErr("أدخل الاسم");
+          if(newAdminPass.length<4)return setAddErr("كلمة مرور قصيرة (4+)");
+          if(LocalDB.accounts[newAdminEmail])return setAddErr("البريد مسجّل مسبقاً");
+          const acc={pass:newAdminPass,name:newAdminName,avatar:null,bio:"",role:"admin",phone:"",country:"SA",lang:"ar",verified:true};
+          LocalDB.addAccount(newAdminEmail,acc);
+          setAccs(Object.entries(LocalDB.accounts));
+          setNewAdminEmail(""); setNewAdminName(""); setNewAdminPass("");
+          setAddOk(true); setTimeout(()=>setAddOk(false),3000);
+        };
+
+        const removeAdmin=(email)=>{
+          if(email===user.email)return;
+          if(window.confirm("هل تريد حذف هذا الأدمن؟")){
+            delete LocalDB.accounts[email];
+            LocalDB.save();
+            setAccs(Object.entries(LocalDB.accounts));
+          }
+        };
+
+        return(
+        <div style={{position:"fixed",inset:0,background:"#00000088",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(4px)"}}>
+          <div style={{background:C.card,border:`1px solid #E879F944`,borderRadius:20,padding:26,width:560,maxWidth:"95vw",maxHeight:"88vh",overflowY:"auto",fontFamily:t.font,direction:t.dir,position:"relative"}}>
+            <button onClick={()=>setShowAdmin(false)} style={{position:"absolute",top:14,left:14,background:"none",border:"none",color:C.muted,fontSize:22,cursor:"pointer"}}>×</button>
+
+            {/* Header */}
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20}}>
+              <div style={{width:40,height:40,borderRadius:12,background:"#E879F922",border:"1px solid #E879F944",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>💎</div>
+              <div>
+                <div style={{fontWeight:800,fontSize:16}}>لوحة المدير</div>
+                <div style={{color:"#E879F9",fontSize:11}}>إدارة فريق الدعم والأدمن</div>
+              </div>
+            </div>
+
+            {/* Add Admin Form - directors only */}
+            {isDirector&&(
+              <div style={{background:"#E879F911",border:"1px solid #E879F933",borderRadius:14,padding:16,marginBottom:18}}>
+                <div style={{fontWeight:700,fontSize:13,color:"#E879F9",marginBottom:12}}>➕ إضافة أدمن جديد</div>
+                <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                  <input value={newAdminName} onChange={e=>setNewAdminName(e.target.value)} placeholder="الاسم الكامل" style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:9,padding:"10px 13px",color:C.text,fontSize:13,fontFamily:t.font,direction:t.dir}}/>
+                  <input value={newAdminEmail} onChange={e=>setNewAdminEmail(e.target.value)} placeholder="البريد الإلكتروني" style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:9,padding:"10px 13px",color:C.text,fontSize:13,fontFamily:"monospace",direction:"ltr",textAlign:"left"}}/>
+                  <input value={newAdminPass} onChange={e=>setNewAdminPass(e.target.value)} type="password" placeholder="كلمة المرور (4+ أحرف)" style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:9,padding:"10px 13px",color:C.text,fontSize:13,fontFamily:t.font,direction:t.dir}}/>
+                  {addErr&&<div style={{background:"#FF4D6D22",borderRadius:8,padding:"8px 12px",color:C.danger,fontSize:12}}>⚠ {addErr}</div>}
+                  {addOk&&<div style={{background:C.accentDim,borderRadius:8,padding:"8px 12px",color:C.accent,fontSize:12}}>✅ تم إضافة الأدمن بنجاح!</div>}
+                  <button onClick={addAdmin} style={{background:"#E879F9",color:"#0A0F1E",border:"none",borderRadius:9,padding:"11px",fontSize:13,fontWeight:800,cursor:"pointer",fontFamily:t.font}}>إضافة أدمن 👑</button>
+                </div>
+              </div>
+            )}
+
+            {/* Accounts List */}
+            <div style={{fontWeight:700,fontSize:13,marginBottom:10,color:C.muted}}>👥 الحسابات ({accs.length})</div>
+            {accs.map(([email,acc])=>{
+              const isMe=email===user.email;
+              const isAdminAcc=acc.role==="admin"||acc.role==="director";
+              return(
+              <div key={email} style={{background:C.surface,border:`1px solid ${acc.role==="director"?"#E879F933":acc.role==="admin"?C.gold+"33":C.border}`,borderRadius:12,padding:"12px 14px",marginBottom:8,display:"flex",alignItems:"center",gap:12}}>
+                <Avatar src={acc.avatar||null} letter={acc.name[0]} size={38} border={acc.role==="director"?"#E879F9":acc.role==="admin"?C.gold:C.accent}/>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:700,fontSize:13,display:"flex",alignItems:"center",gap:6}}>
+                    {acc.name}
+                    {isMe&&<span style={{background:"#E879F922",color:"#E879F9",borderRadius:4,padding:"1px 6px",fontSize:9,fontWeight:700}}>أنت</span>}
+                  </div>
+                  <div style={{color:C.muted,fontSize:11}}>{email}</div>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{background:(roleColor[acc.role]||C.muted)+"22",color:roleColor[acc.role]||C.muted,borderRadius:6,padding:"2px 9px",fontSize:11,fontWeight:700}}>{roleBadge[acc.role]||acc.role}</span>
+                  {isDirector&&acc.role==="admin"&&!isMe&&(
+                    <button onClick={()=>removeAdmin(email)} style={{background:"#FF4D6D22",color:C.danger,border:"1px solid #FF4D6D44",borderRadius:7,padding:"4px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:t.font}}>حذف</button>
+                  )}
+                </div>
+              </div>
+            );})}
+          </div>
+        </div>
+        );
+      })()}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
